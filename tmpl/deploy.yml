@@ -1,0 +1,45 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: <%=name%>
+spec:
+  replicas: 1
+  selector:
+    deployment-config.name: <%=name%>
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        deployment-config.name: dashboard
+    spec:
+      containers:
+      - image: 172.30.1.1:5000/hello/dashboard@sha256:8f11f63bffc116bb9883704f4d1b7e4f90f8ab8ba4bb24a6dfb3d5ab30460ffd
+        imagePullPolicy: Always
+        name: default-container
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - default-container
+      from:
+        kind: ImageStreamTag
+        name: dashboard:latest
+        namespace: hello
+    type: ImageChange
