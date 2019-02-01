@@ -24,10 +24,11 @@ function login({cluster, user, password, strictSSL}) {
 
     rest.headers(headers)
     rest.config({url, strictSSL})
+
     return rest.done()
                .then(( {resp} ) => resp.request.uri.hash)
                .then(get_token)
                .then(token => builder(cluster, token))
 }
 
-module.exports = login
+module.exports = { login, okd: builder } 

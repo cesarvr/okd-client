@@ -1,71 +1,92 @@
-const _ = require('lodash')
-const Store = require('./lib/store')
-const Workspace = require('./lib/workspace')
-const fs = require('fs')
-const yaml = require('yamljs')
-const { ImageStream } = require('./lib/okd')
-const { OKD } = require('./lib/client')
+const _     = require('lodash')
+const Store = require('./lib2/store')
+const Workspace = require('./lib2/workspace')
+const {login, okd} = require('./lib2/okd')
 
-let store = new Store()
-let workspace = new Workspace()
-let configuration = store.configuration
+let store = new Store('./config-cloud.json')
 
-
-let is = new ImageStream({name: 'xtoby-test'})
-
-let okd = new OKD(configuration)
-
-function _delete(okdFactory) {
-      let build = okdFactory.create('Build', 'deletemex2')
-      let is = okdFactory.create('ImageStream', 'toby')
-      let iss = okdFactory.create('ImageStream', 'ss')
-
-      is.on('removed', ()=> console.log('cool is removed!'))
-      build.on('removed', () => console.log('cool build removed!'))
-
-      is.on('error', (err)=> console.log(err))
-      build.on('error', (err)=> console.log(err))
-      is.remove()
-      build.remove()
-      iss.remove()
-
-      return okdFactory
+function preparing_patch (image) {
+    let patch_image = [{op:'replace', path:'/spec/template/spec/containers/0/image', value: image }] 
+    return JSON.stringify(patch_image)
 }
 
-function createBuild(okdFactory) {
-      let build = okdFactory.create('Build', 'deletemex2')
-      build.on('not_found', () => {
-        console.log('build not there creating...')
-        build.loadTemplate('./tmpl/build.yml').post()
-      })
-      build.get()
-
-      return okdFactory
+function api() {
+    let config = store.configuration
+    return okd(config.cluster, config.token).namespace('hello-x')
 }
 
+function create_app(api) {
+    let is     = api.from_template('micro-x','./tmpl/imagestream.yml')
+    let bc     = api.from_template('micro-x','./tmpl/build.yml')
+    let deploy = api.from_template('micro-x','./tmpl/kube-deploy.yml')
+    let svc    = api.from_template('micro-x','./tmpl/service.yml')
 
-function start (okdFactory) {
+    let all = [is, bc, deploy, svc]
 
-    let is = okdFactory.create('ImageStream', 'toby')
+    return Promise.all(all.map( p => p.post() )) 
+}
 
-    is.on('image',     (image) => console.log(`image : ${image}`) )
-    is.on('not_found', () => {
-      console.log('is not there creating...')
-      is.loadTemplate('./tmpl/imagestream.yml').post()
+function save_tokens(api) {
+    api.config((config) => store.save(config) )
+    return api 
+}
+
+const retrieve_last_image = (event) => {
+ let tag = event.object.status.tags.shift()
+ return tag.items.shift().dockerImageReference
+}
+
+function watching(oo){
+    let is = api().is 
+    let deploy = api().deploy 
+
+    console.log('watching....')
+    is.watch('micro-x', (event) => {
+        if(event.type === 'MODIFIED') {
+            let _img = retrieve_last_image(event) 
+            //console.log('preparing_patch->', preparing_patch(_img))
+            deploy.patch('micro-x', preparing_patch(_img))
+                  .then( ok => console.log('updating image-> ', ok))
+                  .catch(error => console.log('updating image error: ' , error)) 
+        }
     })
-    is.get()
-
-    return okdFactory
 }
 
-function delay (okd) {
-  return new Promise((resolve, reject)  => setTimeout(()=>resolve(okd), 5000) )
+function makeRoute(api) {
+    const _api = api || api()
+
+    const route = _api.route
+    
+    return route.by_name('micro-x')
+                .then(resp => {
+        if (resp.code === 404) {
+            console.log('route not found ... creating one')
+            return _api.from_template('micro-x','./tmpl/route.yml').post()
+        } else 
+            return Promise.resolve(resp)
+    })
+    .then( resp => {
+        console.log('finally: ', resp)
+    })
 }
 
-okd.login()
-    .then(start)
-    .then(createBuild)
-    .then(delay)
-    //.then(upload)
-    .then(_delete)
-    .catch(err => console.log(`auth failiure: ${err}`))
+function ff() {
+    let config = store.configuration
+    let bc = okd(config.cluster, config.token).namespace('hello-x').bc
+
+    return bc.binary('./tt.tar.gz', 'micro-x')
+}
+
+
+const noErrors = (err) => console.log('err->', err) 
+
+login(store.configuration)
+    .then(api => api.namespace('hello-x'))
+/*    .then(save_tokens)
+    .then(create_app)
+    .then(watching)
+    .then(ff)
+    .then(ok => console.log(ok))*/
+   .then(api => makeRoute(api) )
+   .catch(noErrors)
+

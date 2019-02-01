@@ -1,30 +1,35 @@
 const request = require('request')
 const _ = require('lodash')
+const tools = require('./tools')
+
+function is_data_incomplete(data) {
+    let cnt = tools.count(data, ['{', '}'])
+    return cnt['{'] !== cnt['}'] 
+}
 
 const client = function() {
-    payload = {}
+    let payload = {}
     let self = {}
 
     self.token = (token) => {
-        payload = {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept' : 'application/json',
-                'Content-Type': 'application/json',
-            }
-        }
+        self.headers({
+            'Authorization': `Bearer ${token}`,
+            'Accept' : 'application/json',
+        })
+
         return self
     }
 
     self.headers = (headers) => {
-        payload.headers = headers
+        payload.headers = _.merge(payload.headers, headers)
+        return self
     } 
 
     self.config = (config) => {
         payload = _.merge(payload, config)
         return self
     }
-    
+
     self.body = (_body) => {
         if (_.isEmpty(_body))
             throw 'Body cannot be empty.'
@@ -37,12 +42,27 @@ const client = function() {
         return self
     }
     self.dbg = () => {
-        console.log('payload ->', payload)
+        console.log('DBG: ', payload)
         return self
     }
 
     self.values = () => {
         return payload
+    }
+
+    self.raw = (cb) => {
+        let chunk = ''
+        request(payload) 
+            .on('response', (resp) => {
+                resp.on('data', buff => {
+                    let str = buff.toString()
+                    chunk += str 
+                    if(!is_data_incomplete(chunk)) {
+                        cb(JSON.parse(chunk))
+                        chunk = ''
+                    }
+                })
+            })
     }
 
     self.done = () => {
@@ -54,16 +74,13 @@ const client = function() {
                         url: payload.url
                     })
 
-                let status = resp.statusCode
+                if(_.isUndefined(resp) ) throw 'Empty response, timeout' 
+
+                    let status = resp.statusCode
                 if (status >= 200 && status < 300 ) {
                     resolve({body, status, resp})
                 } else 
-                    reject({
-                        status, 
-                        error: error || 
-                        `Error HTTP status ${status}`,
-                        url: payload.url
-                    })
+                    resolve({ status, body })
             })
         })
     }

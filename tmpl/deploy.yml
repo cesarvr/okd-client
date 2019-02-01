@@ -23,15 +23,4 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-  test: false
-  triggers:
-  - type: ConfigChange
-  - imageChangeParams:
-      automatic: true
-      containerNames:
-      - default-container
-      from:
-        kind: ImageStreamTag
-        name: dashboard:latest
-        namespace: hello
-    type: ImageChange
+ 

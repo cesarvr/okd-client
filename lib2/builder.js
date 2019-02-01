@@ -1,23 +1,16 @@
 const _ = require('lodash')
 const template  = require('./template')
+const api  = require('./endpoints')
 
-const bc = require('./concrete/bc')
-const base = require('./base')
+const bc       = require('./concrete/bc')
+const is       = require('./concrete/is')
+const deploy   = require('./concrete/deploy')
+const base     = require('./base')
 
-let decorators = [ bc ]
-
-let supported = {
-    'BuildConfig':'bc',
-    'DeploymentConfig':'dc',
-    'ImageStream':'is',
-    'Route':'route',
-    'Service':'svc',
-}
-
-
+let decorators = [ bc, is , deploy]
 
 function relevant_service(tmpl, _builder) {
-    let functionality = supported[tmpl.val().kind]
+    let functionality = api.supported[tmpl.val().kind]
 
     if( _.isUndefined(functionality) )  
         throw `This object is not supported ${tmpl.kind} \\n object ${JSON.stringify(tmpl)} `
@@ -29,8 +22,12 @@ function relevant_service(tmpl, _builder) {
 function builder(cluster, token) {
     let self = {}
 
-    self.prepare_endpoint = (cb) => {
-        return cb(cluster, self.ns) 
+    self.config = (cb) => {
+        return cb({ token: token, 
+                    strictSSL:false, 
+                    namespace: self.ns, 
+                    cluster, 
+        })
     }
     
     self.namespace = (namespace) => {
@@ -47,8 +44,7 @@ function builder(cluster, token) {
 
         tmp = relevant_service(tmpl, tmp)
 
-        tmp.template(file, path)
-        decorators.forEach(decorator => decorator(tmp) )
+        tmp.load(file, path)
         return tmp
     }
 

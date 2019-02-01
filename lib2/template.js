@@ -6,8 +6,18 @@ const client = require('./client')
 function okd_template (tmpl) {
     let self = {}
     self.val  = () => tmpl
-    self.str  = ()=> JSON.stringify( tmpl )
-    self.name = () =>  tmpl.metadata.name
+    self.str  = () => JSON.stringify( tmpl )
+   
+    let gs = {}
+    gs.get_name = () => tmpl.metadata.name
+    gs.set_name = (name) => tmpl.metadata.name = name
+
+    gs.get_labels = ()  => tmpl.metadata.labels
+    gs.set_labels = (obj) => {
+      tmpl.metadata.labels = _.merge( tmpl.metadata.labels, obj )
+    }
+
+    self.gs = gs
 
     return self
 }

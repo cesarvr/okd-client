@@ -1,11 +1,22 @@
 var assert = require('chai').assert
-var Store  = require('../lib/store')
+var Store  = require('../lib2/store')
 var tmpl   = require('../lib2/template')
 var endpoints = require('../lib2/endpoints')
 var client = require('../lib2/client')
+var tools = require('../lib2/tools')
 
 
 describe('Testing the API', function () {
+
+    it('checking tools.count', ()=>{
+        assert.isFunction(tools.count, 'should be a function') 
+
+        assert.deepEqual(tools.count('{{{', ['{']), {'{':3}, 'should be the same'  )
+        assert.deepEqual(tools.count('{{{}}{{', ['{']), {'{':5}, 'should be the same'  )
+        assert.deepEqual(tools.count('{{{}}{{}', ['{', '}']), {'{':5, '}':3}, 'should be the same'  )
+        assert.deepEqual(tools.count('{', ['{', '}']), {'{':1, '}':0}, 'should be the same'  )
+        assert.deepEqual(tools.count('', ['{', '}']), {'{':0, '}':0}, 'should be the same'  )
+    })
 
     it('testing template loader', function () {
         assert.isFunction(tmpl.load, 'should be a function')
@@ -46,8 +57,7 @@ describe('Testing the API', function () {
             headers: 
             { 
                 Authorization: 'Bearer 3232323232323322',
-                Accept: 'application/json',
-                'Content-Type': 'application/json' 
+                Accept: 'application/json'
             },
             url: 'www.goo.gl', 
             strictSSL: true

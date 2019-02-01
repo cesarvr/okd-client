@@ -3,7 +3,17 @@ const URLS = {
     is:     'https://$ENDPOINT/apis/image.openshift.io/v1/namespaces/$NAMESPACE/imagestreams',
     dc:     'https://$ENDPOINT/apis/apps.openshift.io/v1/namespaces/$NAMESPACE/deploymentconfigs',
     svc:    'https://$ENDPOINT/api/v1/namespaces/$NAMESPACE/services',
-    route:  'https://$ENDPOINT/apis/route.openshift.io/v1/namespaces/$NAMESPACE/routes' 
+    route:  'https://$ENDPOINT/apis/route.openshift.io/v1/namespaces/$NAMESPACE/routes',
+    deploy: 'https://$ENDPOINT/apis/apps/v1beta1/namespaces/$NAMESPACE/deployments'
+}
+
+let supported = {
+    'BuildConfig':'bc',
+    'DeploymentConfig':'dc',
+    'Deployment': 'deploy',
+    'ImageStream':'is',
+    'Route':'route',
+    'Service':'svc',
 }
 
 const endpoints = function() {
@@ -18,6 +28,8 @@ const endpoints = function() {
         return str
     }
  }
+
+ svc.supported = supported
 
  Object.keys(URLS).forEach(key => {
     svc[key] = fill_placeholders(key) 

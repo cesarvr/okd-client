@@ -1,23 +1,15 @@
 const _ = require('lodash')
 
-const endpoints    = require('./endpoints')
-const template     = require('./template')
-const client = require('./client')
-
-let set_token = function(token) {
-    return {
-        'Authorization': `Bearer ${token}`,
-        'Accept' : 'application/json',
-        'Content-Type': 'application/json'  
-    }
-}
+const endpoints   = require('./endpoints')
+const template    = require('./template')
+const client      = require('./client')
 
 function base(cluster, token,self) {
     let strictSSL = false
 
     const prepare = (url, method) => {  
         let cli = client() 
-        cli.headers( set_token(token) )
+        cli.token( token )
         cli.config({ method, url, strictSSL })
         return cli
     }
@@ -25,7 +17,7 @@ function base(cluster, token,self) {
     const get_name = (tmpl, name) => {
         if(!_.isEmpty( name) ) return name
 
-        let n = tmpl.name()
+        let n = tmpl.gs.get_name()
 
         if(_.isEmpty(n))
             throw 'This function requires a resource name.'
@@ -40,45 +32,49 @@ function base(cluster, token,self) {
         self[key] = self[key] || {}
 
         self[key].all = () => {
-            let url      = endpoints[key](cluster, self.ns)
+            let url = endpoints[key](cluster, self.ns)
             let cli = prepare(url, 'GET')
             return run( cli ) 
         }
 
         self[key].by_name = (name) => {
-            let url      = endpoints[key](cluster, self.ns)
+            let url = endpoints[key](cluster, self.ns)
             let cli = prepare(url, 'GET')
-                .target(name)
+                        .target(name)
 
             return run( cli ) 
         }       
 
         self[key].remove = (name) => {
-            let url      = endpoints[key](cluster, self.ns)
+            let url = endpoints[key](cluster, self.ns)
             let cli = prepare(url, 'DELETE')
-                .target(name)
+                        .target(name)
 
             return run( cli ) 
         }
 
-        self[key].template = ( name, file) => {
+        self[key].load = ( name, file) => {
             self[key]._tmpl = template.load(name, file)
+            self[key] = _.merge(self[key], self[key]._tmpl.gs)
             return self[key]
         }
 
         self[key].post = (name) => {
             let url = endpoints[key](cluster, self.ns)
             let cli = prepare(url, 'POST')
-                .body( self[key]._tmpl.str() )
+                        .body( self[key]._tmpl.str() )
 
             return run( cli ) 
         }
 
-        self[key].exist = (name) => {
-            name = get_name(self[key]._tmpl, name) 
+        self[key].patch = (name, body) => {
+         let url = endpoints[key](cluster, self.ns)
+         let cli = prepare(url, 'PATCH')
+                         .target(name)
 
-            return self[key].by_name(name)
-                     .then(({status}) => status === 200)
+            cli.headers({'Content-Type' : 'application/json-patch+json'})
+               .body(body)
+            return run( cli )
         }
 
         self[key].create = self[key].post     
