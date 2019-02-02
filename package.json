@@ -1,6 +1,6 @@
 {
   "name": "okd-api",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/"
@@ -15,10 +15,16 @@
   "devDependencies": {
     "chai": "^4.2.0"
   },
-  
+  "keywords": [
+    "kubernetes",
+    "openshift",
+    "okd", 
+    "orchestration"
+  ],
+ 
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/cesarvr/okd-client"
   },
 
   "description": "OKD (OpenShift) client for NodeJS"
