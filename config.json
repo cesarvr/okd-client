@@ -1,9 +1,0 @@
-{
-    "cluster": "https://192.168.64.2:8443",
-    "name": "toby",
-    "namespace": "hello",
-    "password": "sdsdssd$23",
-    "strictSSL": false,
-    "token": "v0tDED5vjN7VveUop3d1YbJ1MXIcmmbJOz-wqBLA4mI",
-    "user": "user"
-}

@@ -1,9 +1,9 @@
 var assert = require('chai').assert
-var Store  = require('../lib2/store')
-var tmpl   = require('../lib2/template')
-var endpoints = require('../lib2/endpoints')
-var client = require('../lib2/client')
-var tools = require('../lib2/tools')
+var Store  = require('../lib/store')
+var tmpl   = require('../lib/template')
+var endpoints = require('../lib/endpoints')
+var client = require('../lib/client')
+var tools = require('../lib/tools')
 
 
 describe('Testing the API', function () {

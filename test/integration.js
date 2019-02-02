@@ -1,8 +1,8 @@
 var assert = require('chai').assert
-var Store = require('../lib2/store')
-var login = require('../lib2/okd').login
+var Store = require('../lib/store')
+var login = require('../lib/okd').login
 var fs = require('fs')
-var WK = require('../lib2/workspace')
+var WK = require('../lib/workspace')
 
 let store = new Store()
 let okd = null 

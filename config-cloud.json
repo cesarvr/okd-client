@@ -1,9 +1,0 @@
-{
-    "cluster": "https://console.starter-us-west-2.openshift.com",
-    "name": "toby",
-    "namespace": "hello-x",
-    "password": "jessica2006",
-    "strictSSL": false,
-    "token": "WRBGEuTfXuyovTd1nUpaOIgIgtd4WNPZSNGZT30W_FA",
-    "user": "cvaldezrx@gmail.com"
-}
