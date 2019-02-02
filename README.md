@@ -2,13 +2,13 @@
 
 This API allows you to make calls to the Kubernetes/OpenShift server for now it support Creation, Read, Update (via Patch) and Delete (CRUD) for some basics resources like:
 
-### OpenShift  
+### OpenShift  
   - [ImageStream](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html)
   - [BuildConfig](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html)
   - [DeploymentConfig](https://docs.openshift.com/enterprise/3.0/dev_guide/deployments.html)
   - [Router](https://docs.openshift.com/container-platform/3.9/install_config/router/index.html)
 
-### Kubernetes
+### Kubernetes
 - [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
 - [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
 
@@ -213,7 +213,7 @@ deploy.patch('awesome-app', update)
 This will update the deployment object and automatically this change will trigger a re-deployment.
 
 
-# Shortcuts
+# Shortcuts
 
 Some operations above can be done more faster for example the resource creation, here is an alternative on how to do this:
 
