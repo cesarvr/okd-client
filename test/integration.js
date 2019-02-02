@@ -6,6 +6,7 @@ var WK = require('../lib/workspace')
 
 let store = new Store()
 let okd = null 
+let workspace = new WK()
 
 const noErrors = (err) => 
 { 
@@ -21,8 +22,6 @@ before(function() {
 })
 
 describe('Testing connection with OKD', function () {
-
-
     it('testing login', function () {
         return login(store.configuration)
                .then(okd_builder => {
@@ -93,10 +92,13 @@ describe('Testing connection with OKD', function () {
 
         assert.isFunction(bc.binary, 'bc should have a binary function') 
 
-        return bc.binary('./tt.tar.gz').then(ok => {
+        let file = workspace.compress('./tt.tar')
+        console.log('sending package: ', file)
+        return bc.binary(file).then(ok => {
             let kind = {kind: 'Build'}
             assert.deepInclude(ok, kind,
                 'should return okd object from server')
+            workspace.clean()
         }).catch(noErrors)  
     })
 
