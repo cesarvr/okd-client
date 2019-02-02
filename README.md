@@ -48,17 +48,16 @@ let config = {
 login(config)
     .then(okd => {
       //get all services.
-      return okd.namespace('dev-01').svc.all()
-      /*
-         [ 
-           { kind: Service,
-             apiVersion: v1,
-             metadata:,
-             ...
-           },
-           ....
-         ]
-      */
+      return okd.namespace('dev-01').svc.all() /* Returns...
+                                                   [ 
+                                                     { kind: Service,
+                                                       apiVersion: v1,
+                                                       metadata:,
+                                                       ...
+                                                     },
+                                                     ....
+                                                   ]
+                                                */
     })
     .then(services => console.log('print: ', services))
     .catch(err => console.log('promise failed: ', err))
