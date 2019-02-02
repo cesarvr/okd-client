@@ -27,13 +27,5 @@ spec:
         name: nodejs:10
         namespace: openshift
     type: Source
-  successfulBuildsHistoryLimit: 1
-  triggers:
-  - github:
-      secret: DmUlxuW1cuiEN48OiIWG
-    type: GitHub
-  - generic:
-      secret: y_NWhs3CwU1ripsSrW6c
-    type: Generic
 status:
   lastVersion: 1
