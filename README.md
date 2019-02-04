@@ -314,7 +314,8 @@ This will update the deployment object and automatically this change will trigge
 
 
 <a name="fii"/>
-## Fast Template Instantiation
+
+## Shortcuts
 
 Some operations above can be done more faster for example the resource creation, here is an alternative on how to do this:
 
@@ -359,6 +360,7 @@ Let's say you have a bunch of resources in the form of templates.
 ```
 
 <a name="binary"/>
+
 ### Triggering a Build
 
 For now the only way to trigger a build in using this API is by uploading a binary.
