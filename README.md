@@ -195,7 +195,7 @@ This will look for a [image-stream](https://docs.openshift.com/enterprise/3.0/ar
 
 <a name="remove"/>
 
-### Remove
+### Remove
 
 To remove a resource from the cluster:
 
