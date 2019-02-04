@@ -1,6 +1,6 @@
 ## OKD Node.js Client
 
-This Node.JS RESTful client for Kubernetes/OpenShift platform you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
+This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
 
 * [Installing](#install)
 * [Login](#login)
