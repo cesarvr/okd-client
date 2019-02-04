@@ -132,20 +132,19 @@ The ```okd``` object acts as a root object for all the available resources.
 
 Each of those function are objects represent one of this elements:
 
-### OpenShift  
+- OpenShift  
   - [ImageStream](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html)
   - [BuildConfig](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html)
   - [Build](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html)
   - [DeploymentConfig](https://docs.openshift.com/enterprise/3.0/dev_guide/deployments.html)
   - [Router](https://docs.openshift.com/container-platform/3.9/install_config/router/index.html)
 
-### Kubernetes
-- [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
-- [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+- Kubernetes
+  - [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
+  - [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
 
-And this elements provide a create, read, update and delete RESTful functionality.
 
-For example:
+Each element provide a create, read, update and delete RESTful interface:
 
 ```js
 okd.bc.all()   // find all BuildConfig
