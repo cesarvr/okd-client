@@ -137,6 +137,14 @@ describe('Testing connection with OKD', function () {
             .catch(noErrors)
     })
 
+    /*it.only('testing user object', function(){
+    
+        okd.namespace('hello').user.by_name('user').then(usr => {
+            console.log('user ->' , usr)
+        
+        }).catch(noErrors)
+    })*/
+
     it('load templates', function (){
         let svc = okd.namespace('hello').svc
         svc.load('robot-build' , './tmpl/build.yml')
