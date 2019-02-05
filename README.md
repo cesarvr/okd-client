@@ -1,5 +1,7 @@
 ## OKD Node.js Client
 
+This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
+
 * [Installing](#install)
 * [Login](#login)
 * [Initialize With Token](#token)
@@ -17,7 +19,6 @@
 
 
 
-This API allows you to make calls to the Kubernetes/OpenShift server for now it support Creation, Read, Update (via Patch) and Delete (CRUD) for some resources and make it easier to automate flows using Javascript.
 
 
 ## Login
@@ -195,7 +196,7 @@ This will look for a [image-stream](https://docs.openshift.com/enterprise/3.0/ar
 
 <a name="remove"/>
 
-### Remove
+### Remove
 
 To remove a resource from the cluster:
 
@@ -313,7 +314,8 @@ This will update the deployment object and automatically this change will trigge
 
 
 <a name="fii"/>
-## Fast Template Instantiation
+
+## Shortcuts
 
 Some operations above can be done more faster for example the resource creation, here is an alternative on how to do this:
 
@@ -358,6 +360,7 @@ Let's say you have a bunch of resources in the form of templates.
 ```
 
 <a name="binary"/>
+
 ### Triggering a Build
 
 For now the only way to trigger a build in using this API is by uploading a binary.
