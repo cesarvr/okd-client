@@ -128,7 +128,9 @@ The ```okd``` object acts as a root object for all the available resources.
   okd.dc     // OpenShift DeploymentConfig
   okd.route  // OpenShift Routes
   okd.svc    // OpenShift/Kubernetes services
+  okd.pod    // OpenShift/Kubernetes pod
   okd.deploy // OpenShift/Kubernetes deployment
+  okd.rs     // OpenShift/Kubernetes replica sets
 ```
 
 Each of those function are objects represent one of this elements:
@@ -143,6 +145,8 @@ Each of those function are objects represent one of this elements:
 - Kubernetes
   - [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
   - [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+  - [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/)
+  - [ReplicaSet](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/)
 
 
 Each element provide a create, read, update and delete RESTful interface:

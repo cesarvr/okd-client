@@ -1,6 +1,6 @@
 {
   "name": "okd-api",
-  "version": "0.7.1",
+  "version": "0.8.1",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/"
@@ -18,10 +18,10 @@
   "keywords": [
     "kubernetes",
     "openshift",
-    "okd", 
+    "okd",
     "orchestration"
   ],
- 
+
   "repository": {
     "type": "git",
     "url": "https://github.com/cesarvr/okd-client"

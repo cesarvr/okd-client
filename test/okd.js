@@ -4,9 +4,36 @@ var tmpl   = require('../lib/template')
 var endpoints = require('../lib/endpoints')
 var client = require('../lib/client')
 var tools = require('../lib/tools')
+var jreader = require('../lib/helper/json_reader.js')()
+
 
 
 describe('Testing the API', function () {
+
+    it('JSON reader', ()=>{
+      assert.isFunction(jreader.is_json, 'isJSON should be a function')
+      assert.isTrue(jreader.is_json('{}'), '{} this could be transform to a valid json')
+      assert.isTrue(jreader.is_json(`{"name": "bob"}`), `{"name": "bob"} this could be transform to a valid json`)
+      assert.isFalse(jreader.is_json(`{"name": "bob",`), `{"name": "bob", ... this cannot be transformed to a valid json`)
+
+    })
+
+    it('Testing JSON parsing', ()=>{
+      assert.isFunction(jreader.parse_block, 'isJSON should be a function')
+      assert.isArray(jreader.parse_block('{"name": "bob"} {"name": "dylan"}'), 'This should return an array')
+      assert.equal(jreader.parse_block('{"name": "bob"} {"name": "dylan"}').length, 2,'This should return an array')
+      assert.deepEqual(jreader.parse_block('{"name": "bob"} {"name": "dylan"}'), [{name:'bob'}, {name: 'dylan'}],'This should be the same')
+    })
+
+    it('Testing partial JSON parsing', ()=>{
+      assert.deepEqual(jreader.parse_block('{"name": "bob"} {"name" '), [{name:'bob'}],'This should be the same')
+      assert.deepEqual(jreader.parse_block('"name": "bob"} {"name": "dylan"} '), [{name:'dylan'}],'This should be the same')
+      assert.deepEqual(jreader.parse_block('"name": "bob"} {"name": "dylan" '), [],'This should be the same')
+      assert.deepEqual(jreader.parse_block('{"name": "bob", "second": "dylan"} '), [{name: 'bob', second:'dylan'}],'This should be the same')
+
+
+    })
+
 
     it('checking tools.count', ()=>{
         assert.isFunction(tools.count, 'should be a function')

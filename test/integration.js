@@ -7,6 +7,7 @@ var WK = require('../lib/workspace')
 let store = new Store()
 let okd = null
 let workspace = new WK()
+let file = null 
 
 const noErrors = (err) =>
 {
@@ -14,11 +15,24 @@ const noErrors = (err) =>
 }
 
 before(function() {
+file = workspace.compress('./tt.tar')
 return login(store.configuration)
         .then(api => {
             okd = api;
         })
         .catch(noErrors)
+})
+
+after(() => {
+   workspace.clean()
+
+    /*
+    let bc = okd.namespace('hello').bc
+    return bc.remove('micro-1')
+    .then(ok => {
+        console.log('remove->', ok)
+    })
+    .catch(noErrors)*/
 })
 
 describe('Testing connection with OKD', function () {
@@ -37,6 +51,20 @@ describe('Testing connection with OKD', function () {
                             .from_template('micro-1', './tmpl/build.yml')
 
         assert.isFunction(bc.binary, 'bc should have a binary function')
+    })
+ this.timeout(150000);
+    it.only('testing errors', () => {
+
+        var _okd = require('../lib/okd').okd
+        _okd = _okd('https://120.3.3.3:8443', 'NOTOKEN').namespace('wrong')
+        return _okd.pod.all().then(ok => {
+            console.log('ok->', ok)
+        
+        }).catch(err => {
+            assert.hasAnyKeys(err, ['code', 'payload', 'message'])
+            assert.equal(err.code, 'ETIMEDOUT', 'it should be a timeout')
+        })
+    
     })
 
 
@@ -58,7 +86,7 @@ describe('Testing connection with OKD', function () {
 
     it('create deployment', ()=> {
         okd =    okd.namespace('hello')
-        let deploy = okd.from_template('micro-1', './tmpl/kube-deploy.yml')
+        let deploy = okd.from_template('micro-x', './tmpl/kube-deploy.yml')
 
         assert.isFunction(deploy.get_name, 'should be defined' )
 
@@ -81,14 +109,29 @@ describe('Testing connection with OKD', function () {
         return deploy.remove('my-deployment').then(ok => {
             assert.deepInclude(ok,{kind: 'Deployment'}, 'we expect this by of kind Deployment')
         })
+
     })
+
+
+    /*
+    it('create a build', () => {
+        okd.namespace('hello')
+        let bc = okd.from_template('wicro-x', './tmpl/build.yml')
+
+        return bc.post()
+        .then(ok => {
+            console.log('create bc-> ', ok)
+        })
+        .catch(noErrors)
+    })*/
+
+
 
     it('watching a build', function (done) {
       this.timeout(40000)
       okd.namespace('hello')
-      let file = workspace.compress('./tt.tar')
-      let bc = okd.from_template('micro-1', './tmpl/build.yml')
-      okd.is.watch('micro-1', (event)=> {
+      let bc = okd.from_template('micro-x', './tmpl/build.yml')
+      okd.is.watch('micro-x', (event)=> {
         assert.deepInclude(event.object, {kind: 'ImageStream'}, 'should watch for buildconfiguration')
         assert.containsAllKeys(event, ['type', 'object'], 'should contain an object with fields: [type, object] ')
         if (event.type === 'MODIFIED') {
@@ -96,25 +139,32 @@ describe('Testing connection with OKD', function () {
         }
       })
 
-      bc.binary(file, 'micro-1')
+      bc.binary(file, 'micro-x')
       .then(ok => true)
-      .catch(noErrors)
+      .catch((err) => console.log('err0r ->', err) )
     })
+
 
     it('launching a binary build', function () {
         this.timeout(5000)
         okd.namespace('hello')
 
-        let bc = okd.from_template('micro-1', './tmpl/build.yml')
+        let bc = okd.from_template('micro-x', './tmpl/build.yml')
         assert.isFunction(bc.binary, 'bc should have a binary function')
 
-        let file = workspace.compress('./tt.tar')
         return bc.binary(file).then(ok => {
             let kind = {kind: 'Build'}
             assert.deepInclude(ok, kind,
                 'should return okd object from server')
-            workspace.clean()
         }).catch(noErrors)
+    })
+
+    it('get builds', ()=> {
+        okd.namespace('hello')
+        return okd.namespace('hello')
+                  .bc
+                  .by_name('micro-x').then(ok => {
+            }).catch(noErrors)
     })
 
     it('testing find all components', function (){
@@ -137,15 +187,7 @@ describe('Testing connection with OKD', function () {
             .catch(noErrors)
     })
 
-    /*it.only('testing user object', function(){
-    
-        okd.namespace('hello').user.by_name('user').then(usr => {
-            console.log('user ->' , usr)
-        
-        }).catch(noErrors)
-    })*/
-
-    it('load templates', function (){
+        it('load templates', function (){
         let svc = okd.namespace('hello').svc
         svc.load('robot-build' , './tmpl/build.yml')
         let ff = {kind: 'BuildConfig'}
