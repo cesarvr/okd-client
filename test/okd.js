@@ -60,9 +60,9 @@ describe('Testing the API', function () {
 
     it('testing template loader', function () {
         assert.isFunction(tmpl.load, 'should be a function')
-        assert.isObject(tmpl.load('js-one', './tmpl/build.yml'), 'should be a object')
+        assert.isObject(tmpl.load({name: 'js-one'}, './tmpl/build.yml'), 'should be a object')
 
-        let build = tmpl.load('js-one','./tmpl/build.yml')
+        let build = tmpl.load({name: 'js-one'},'./tmpl/build.yml')
         assert.deepInclude(build.val(),
             { kind: 'BuildConfig' },
             ' should include a field {kind: \'BuildConfig\' }')

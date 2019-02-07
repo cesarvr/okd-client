@@ -28,7 +28,7 @@ after(() => {
 
     /*
     let bc = okd.namespace('hello').bc
-    return bc.remove('micro-1')
+    return bc.remove({name: 'micro-1'})
     .then(ok => {
         console.log('remove->', ok)
     })
@@ -48,7 +48,7 @@ describe('Testing connection with OKD', function () {
 
     it('testing extentions mechanism', function () {
         let bc = okd.namespace('hello')
-                            .from_template('micro-1', './tmpl/build.yml')
+                            .from_template({ name: 'micro-1' }, './tmpl/build.yml')
 
         assert.isFunction(bc.binary, 'bc should have a binary function')
     })
@@ -70,7 +70,7 @@ describe('Testing connection with OKD', function () {
 
     it.skip('creating deployment config', () => {
         let okd = okd.namespace('hello')
-        let dc  = okd.from_template('micro-1', './tmpl/deploy.yml')
+        let dc  = okd.from_template({name: 'micro-1'}, './tmpl/deploy.yml')
         let s = { kind: 'DeploymentConfig'}
         return dc.create().then( (ok) => {
             assert.deepInclude(ok, s, 'should be the the same object')
@@ -83,35 +83,6 @@ describe('Testing connection with OKD', function () {
         let is = okd.namespace('hello').is
         assert.isDefined(is.watch, 'watch should be defined')
     })
-
-    it('create deployment', ()=> {
-        okd =    okd.namespace('hello')
-        let deploy = okd.from_template('micro-x', './tmpl/kube-deploy.yml')
-
-        assert.isFunction(deploy.get_name, 'should be defined' )
-
-        deploy.set_name('my-deployment')
-        assert.equal( deploy.get_name(),'my-deployment' , 'should be defined' )
-        assert.equal( deploy.get_replicas(),1 , 'should have a value of 1' )
-        deploy.set_replicas(3)
-        assert.equal( deploy.get_replicas(), 3, 'should have a value of 3' )
-
-
-        deploy.set_replicas(1)
-        return deploy.create().then(ok => {
-            assert.deepInclude(ok,{kind: 'Deployment'}, 'we expect this by of kind Deployment')
-        }).catch(noErrors)
-    })
-
-    it('delete deployment', ()=> {
-        let deploy = okd.namespace('hello').deploy
-
-        return deploy.remove('my-deployment').then(ok => {
-            assert.deepInclude(ok,{kind: 'Deployment'}, 'we expect this by of kind Deployment')
-        })
-
-    })
-
 
     /*
     it('create a build', () => {
@@ -130,7 +101,7 @@ describe('Testing connection with OKD', function () {
     it('watching a build', function (done) {
       this.timeout(40000)
       okd.namespace('hello')
-      let bc = okd.from_template('micro-x', './tmpl/build.yml')
+      let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
       okd.is.watch('micro-x', (event)=> {
         assert.deepInclude(event.object, {kind: 'ImageStream'}, 'should watch for buildconfiguration')
         assert.containsAllKeys(event, ['type', 'object'], 'should contain an object with fields: [type, object] ')
@@ -149,7 +120,7 @@ describe('Testing connection with OKD', function () {
         this.timeout(5000)
         okd.namespace('hello')
 
-        let bc = okd.from_template('micro-x', './tmpl/build.yml')
+        let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
         assert.isFunction(bc.binary, 'bc should have a binary function')
 
         return bc.binary(file).then(ok => {
@@ -187,9 +158,9 @@ describe('Testing connection with OKD', function () {
             .catch(noErrors)
     })
 
-        it('load templates', function (){
+    it('load templates', function (){
         let svc = okd.namespace('hello').svc
-        svc.load('robot-build' , './tmpl/build.yml')
+        svc.load({name: 'robot-build' } , './tmpl/build.yml')
         let ff = {kind: 'BuildConfig'}
         assert.deepInclude(svc._tmpl.val(), ff, `should had ${ff}`)
     })
