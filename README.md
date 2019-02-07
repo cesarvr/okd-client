@@ -297,7 +297,7 @@ To modify the template you can do this:
 
 ```js
 let deploy = okd.namespace('dev-665').deploy
-let object = deploy.load('deploy-x', 'deploy.yml')._tmpl   //pass by reference
+let object = deploy.load({name: 'my-deployment', image:'nginx'}, 'deploy.yml')._tmpl   //pass by reference
 
 
 object.metadata.name = 'deploy-y'
