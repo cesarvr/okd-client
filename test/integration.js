@@ -7,7 +7,7 @@ var WK = require('../lib/workspace')
 let store = new Store()
 let okd = null
 let workspace = new WK()
-let file = null 
+let file = null
 
 const noErrors = (err) =>
 {
@@ -53,18 +53,18 @@ describe('Testing connection with OKD', function () {
         assert.isFunction(bc.binary, 'bc should have a binary function')
     })
  this.timeout(150000);
-    it.only('testing errors', () => {
+    it('testing errors', () => {
 
         var _okd = require('../lib/okd').okd
         _okd = _okd('https://120.3.3.3:8443', 'NOTOKEN').namespace('wrong')
         return _okd.pod.all().then(ok => {
             console.log('ok->', ok)
-        
+
         }).catch(err => {
             assert.hasAnyKeys(err, ['code', 'payload', 'message'])
             assert.equal(err.code, 'ETIMEDOUT', 'it should be a timeout')
         })
-    
+
     })
 
 

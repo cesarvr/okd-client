@@ -100,7 +100,8 @@ describe('Testing the API', function () {
                 Accept: 'application/json'
             },
             url: 'www.goo.gl',
-            strictSSL: true
+            strictSSL: true,
+            timeout: 5000,
         }
 
         assert.isFunction(client, 'should be an object')
