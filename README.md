@@ -258,18 +258,18 @@ spec:
     spec:
       containers:
       - name: <%=name%>
-        image: nginx
+        image: <%=image%>
         command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
         ports:
         - containerPort: 8080
 ```
 
 
-The ``<%=name%>`` are place holders that works very similar to the Javascript [template engines](https://stackoverflow.com/questions/4778881/how-to-use-underscore-js-as-a-template-engine). To publish this to the server you just need to do:
+The ``<%=name%>`` and ``<%=image%>`` are place holders that works very similar to the Javascript [template engines](https://stackoverflow.com/questions/4778881/how-to-use-underscore-js-as-a-template-engine). To publish this to the server you just need to do:
 
 ```js
   let deploy = okd.namespace('dev-665').deploy
-  deploy.load('deploy-x', 'deploy.yml').post()
+  deploy.load({name: 'my-deployment', image:'nginx'}, 'deploy.yml').post()
 ```
 
 This code will send the template in this form:
@@ -283,6 +283,9 @@ metadata:
     app: deploy-x
 spec:
   replicas: 1
+  ...
+  containers:
+   image: nginx
   ...
 ```
 
