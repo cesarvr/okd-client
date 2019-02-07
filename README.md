@@ -2,6 +2,9 @@
 
 This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
 
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/okd-demo.gif?raw=true)
+
 * [Installing](#install)
 * [Login](#login)
 * [Initialize With Token](#token)
