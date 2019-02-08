@@ -23,6 +23,7 @@ This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to
 * [Shortcuts](#fii)
 * [Triggering Builds](#binary)
 * [Watch](#watch)
+* [Pods](#pods)
 
 
 
@@ -419,3 +420,42 @@ okd.bc.binary('/workspace.tar.gz', 'micro-1') // micro-1 should be an existing B
 .then(ok => true)
 .catch(noErrors)
 ```
+
+
+## Pods
+
+[Pods](https://kubernetes.io/docs/concepts/workloads/pods/pod/) are the building blocks for Kubernetes applications, they also expose some functionalities that can be useful:
+
+### Logs
+
+There is two options to watch pod logs first is getting the whole bulk, by using the ``pod.logs`` method:
+
+```js
+okd.pod.by_name('my-pod')
+       .then(pod  => pod.metadata.name)
+       .then(name => okd.pod.logs(name))
+       .then(logs => console.log(logs))
+```
+
+This will return the logs for the pod ``my-pod``
+
+```sh
+npm info using npm@6.4.1
+npm info using node@v10.12.0
+npm info lifecycle my-app@1.0.0~prestart: my-app@1.0.0
+npm info lifecycle my-app@1.0.0~start: my-app@1.0.0
+> my-app@1.0.0 start /opt/app-root/src
+> node app.js
+```
+
+This method give you a snapshot of the current state but you will miss further updates, to keep streaming logs in real-time you can use the ``pod.stream_logs`` method:
+
+
+```js
+okd.pod.stream_logs(podName, line => {
+    console.log(line)    // npm info using npm@6.4.1 ...
+                         // npm info using node@v10.12.0
+})
+```
+
+This method keeps track of the latest logs update in the pod.
