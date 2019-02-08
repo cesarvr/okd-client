@@ -98,7 +98,7 @@ As mentioned before once you login into the server you will receive an ``okd`` o
 
 ### Namespace
 
-[Namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) is a way to partition resources across your Kubernetes/OpenShift cluster. This mean that to access a particular resource such as [BuildConfig](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html) you need to specify the cluster.
+[Namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) is a way to partition resources across your Kubernetes/OpenShift cluster. This mean that to access a particular resource such as [BuildConfig](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html) you need first need to specify the namespace.
 
 ```js
   okd.namespace('dev-665')
