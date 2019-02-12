@@ -407,7 +407,7 @@ okd.bc.binary('/workspace.tar.gz', 'micro-1') // micro-1 should be an existing B
 
 <a name="watch_all"/>
 
-#### All
+#### All
 
 You also can use ``watch_all`` to listen for changes for a particular set of objects type in the cluster/namespace, each event is later delegate to an [anonymous function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#The_function_expression_(function_expression)):
 
