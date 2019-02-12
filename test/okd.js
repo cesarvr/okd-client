@@ -4,36 +4,64 @@ var tmpl   = require('../lib/template')
 var endpoints = require('../lib/endpoints')
 var client = require('../lib/client')
 var tools = require('../lib/tools')
-var jreader = require('../lib/helper/json_reader.js')()
+var okd_stream = require('../lib/helper/okd_stream')()
 
 
+describe('When data we should extract the JSON and leave the rest', () => {
+
+  it('testing okd_stream parser object', ()=> {
+    let p1 = `{"value": "aaaaa"} \n {"value": "bbbbbb"} \n {"value":"ccccc"} \n`
+
+    let ret = okd_stream.read(p1)
+    assert.isArray(ret, `it should return an array` )
+    assert.equal(ret.length, 3, `it should return an array` )
+
+    ret.forEach(values => {
+      assert.isObject(values, 'should be an object')
+      assert.isDefined(values.value, 'value should be defined')
+    })
+  })
+
+  it('testing alternative values', () => {
+
+    let p2 = `{"home": "aaaaa"} \n {"home": "bbbbbb"} \n {"home":"ccccc"} \n`
+    let ret = okd_stream.read(p2  )
+    ret.forEach(values => {
+      assert.isObject(values, 'should be an object')
+      assert.isDefined( values.home, 'home should be defined')
+    })
+  })
+
+  it('testing with incomplete values', () => {
+    let p2 = `{"type": "aaaaa"} \n {"type": "bbbbbb"} \n {"type":`
+    let ret = okd_stream.read(p2  )
+    ret.forEach(values => {
+      assert.isObject(values, 'should be an object')
+      assert.isDefined(values.type, 'home should be defined')
+    })
+  })
+
+
+  it('testing with incomplete data', () => {
+    let p2 = `{"type": "aaa:`
+    let ret = okd_stream.read(p2  )
+    assert.isArray(ret, `it should return an array`)
+    assert.isEmpty(ret, `it should be an empty array`)
+  })
+
+
+  it('testing remove readed function', () => {
+    let p1 = `{"type": "aaaaa"} \n {"type": "bbbbbb"} \n {"type":`
+    assert.isFunction(okd_stream.remove_readed, 'should be a function')
+
+    let ret = okd_stream.remove_readed(p1)
+    assert.equal(ret, `{"type":`, `it should return an array` )
+
+  })
+
+})
 
 describe('Testing the API', function () {
-
-    it('JSON reader', ()=>{
-      assert.isFunction(jreader.is_json, 'isJSON should be a function')
-      assert.isTrue(jreader.is_json('{}'), '{} this could be transform to a valid json')
-      assert.isTrue(jreader.is_json(`{"name": "bob"}`), `{"name": "bob"} this could be transform to a valid json`)
-      assert.isFalse(jreader.is_json(`{"name": "bob",`), `{"name": "bob", ... this cannot be transformed to a valid json`)
-
-    })
-
-    it('Testing JSON parsing', ()=>{
-      assert.isFunction(jreader.parse_block, 'isJSON should be a function')
-      assert.isArray(jreader.parse_block('{"name": "bob"} {"name": "dylan"}'), 'This should return an array')
-      assert.equal(jreader.parse_block('{"name": "bob"} {"name": "dylan"}').length, 2,'This should return an array')
-      assert.deepEqual(jreader.parse_block('{"name": "bob"} {"name": "dylan"}'), [{name:'bob'}, {name: 'dylan'}],'This should be the same')
-    })
-
-    it('Testing partial JSON parsing', ()=>{
-      assert.deepEqual(jreader.parse_block('{"name": "bob"} {"name" '), [{name:'bob'}],'This should be the same')
-      assert.deepEqual(jreader.parse_block('"name": "bob"} {"name": "dylan"} '), [{name:'dylan'}],'This should be the same')
-      assert.deepEqual(jreader.parse_block('"name": "bob"} {"name": "dylan" '), [],'This should be the same')
-      assert.deepEqual(jreader.parse_block('{"name": "bob", "second": "dylan"} '), [{name: 'bob', second:'dylan'}],'This should be the same')
-
-
-    })
-
 
     it('checking tools.count', ()=>{
         assert.isFunction(tools.count, 'should be a function')

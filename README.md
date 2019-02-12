@@ -2,10 +2,7 @@
 
 This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
 
-
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/okd-demo.gif?raw=true)
-
-
 
 ## Index
 
@@ -19,13 +16,17 @@ This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to
   - [Remove](#remove)
   - [Create](#create)
   - [Template](#template)
-  - [Update](#update)
+  - [Patch](#patch)
 * [Shortcuts](#fii)
-* [Triggering Builds](#binary)
 * [Watch](#watch)
-* [Pods](#pods)
-
-
+  - [By Name](#watch_by_name)
+  - [All](#watch_all)
+* [Concrete Implementations](#concrete)
+  - [Build Configuration](#bc)
+    - [Binary Build](#binary)
+  - [Pods](#pods)
+    - [Logs](#logs)
+* [More Examples](#examples)
 
 
 
@@ -290,7 +291,6 @@ spec:
   ...
 ```
 
-Basically it use a [Lodash](https://lodash.com/) template engine behind the scene to replace those expressions.  
 
 ### Editing template at Runtime
 
@@ -305,7 +305,7 @@ object.metadata.name = 'deploy-y'
 deploy.post()   // we send the template with the amended field.
 ```
 
-<a name="update"/>
+<a name="patch"/>
 
 ### Update resource
 
@@ -374,34 +374,17 @@ Let's say you have a bunch of resources in the form of templates.
    objs.forEach(obj => updateObjects(obj))
 ```
 
-<a name="binary"/>
 
-### Triggering a Build
-
-For now the only way to trigger a build in using this API is by uploading a binary.
-
-For example:
-
-```js
-function compressWorkSpace(dir, name){
-    let tmp_file = name || './okd.tar.gz'
-    let ret = spawn('tar', ['-Czf', tmp_file, '-C', dir, dir]) // tar the directory, forget parent
-    return tmp_file
-}
-
-/* tar the workspace folder */
-let file = compressWorkSpace('build.tar.gz', '~/my-nodejs-project')
-
-okd.bc.binary(file, 'micro-1') // micro-1 should be an existing BuildConfig
-.then(ok => console.log('The build has started...'))
-.catch(noErrors)
-```
 
 <a name="watch"/>
 
 ### Watch
 
 Watching is another cool feature of Kubernetes/OpenShift that allows you to listen for specific [events](https://kubernetes.io/docs/tasks/debug-application-cluster/events-stackdriver/).  
+
+<a name="watch_by_name"/>
+
+#### By Name
 
 In this example we are going to trigger build to create an image and then listen when this image is finally published in the registry:
 
@@ -422,9 +405,91 @@ okd.bc.binary('/workspace.tar.gz', 'micro-1') // micro-1 should be an existing B
 ```
 
 
+<a name="watch_all"/>
+
+#### All
+
+You also can use ``watch_all`` to listen for changes for a particular set of objects type in the cluster/namespace, each event is later delegate to an [anonymous function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#The_function_expression_(function_expression)):
+
+```js
+  okd.watch_all( (events) => {  /* events [ event 1, event 2, ... ]*/  } )
+```
+
+This function will get an array of Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) as parameters reflecting any change in the cluster of those objects.
+
+In this example we are going to listen for any changes in pods running in the ``testing`` namespace:
+
+```js
+const login = require('./lib/okd').login
+
+function watch_test(events) {
+  let type     = events[0].type
+  let phase    = events[0].object.status.phase
+  let pod_name = events[0].object.metadata.name
+
+    // Only show compute pods in OKD ;)
+    if(!( 'openshift.io/build.name' in annotations)  ) {
+      console.log(`event type ${events[0].type} -> ${pod_name}`)
+      console.log(`phase => `, phase)
+    }
+}
+
+login(store.configuration) //{cluster: '****', user:'user', ...}
+    .then(okd => okd.namespace('testing') // watch in testing namespace
+                    .pod
+                    .watch_all(watch_test))
+    .catch(err => console.log('Authentication error: ', err))
+
+```
+
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/global-events.gif?raw=true)
+
+
+This function is also available for all supported resources.  
+
+
+<a name="concrete"/>
+
+# Concrete Implementations
+
+Some Kubernetes/OKD objects have unique functionalities, in the case of pod for example aside from common functionalities they also implement other functions like logs, exec, etc.
+
+<a name="bc"/>
+
+## Build Configuration
+
+<a name="binary"/>
+
+### Trigger A Binary Build
+
+For now the only way to trigger a build in using this API is by uploading a binary.
+
+For example:
+
+```js
+function compressWorkSpace(dir, name){
+    let tmp_file = name || './okd.tar.gz'
+    let ret = spawn('tar', ['-Czf', tmp_file, '-C', dir, dir]) // tar the directory, forget parent
+    return tmp_file
+}
+
+/* tar the workspace folder */
+let file = compressWorkSpace('build.tar.gz', '~/my-nodejs-project')
+
+okd.bc.binary(file, 'micro-1') // micro-1 should be an existing BuildConfig
+.then(ok => console.log('The build has started...'))
+.catch(noErrors)
+```
+
+<a name="pods"/>
+
 ## Pods
 
 [Pods](https://kubernetes.io/docs/concepts/workloads/pods/pod/) are the building blocks for Kubernetes applications, they also expose some functionalities that can be useful:
+
+
+<a name="logs"/>
 
 ### Logs
 
@@ -459,3 +524,59 @@ okd.pod.stream_logs(podName, line => {
 ```
 
 This method keeps track of the latest logs update in the pod.
+
+
+<a name="examples"/>
+
+## More Examples
+
+Let's make a robot that monitors the logs of any running pod in our namespace including builds (*which in essence are just other type of pods*).
+
+```js
+const login = require('./lib/okd').login
+
+
+function watch_bot(okd, name) {
+    let pending = {}
+
+    // Closure that will
+    return function(events) {
+        // for more info about event object -->
+        //https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event
+        let annotations = events[0].object.metadata.annotations
+        let labels = events[0].object.metadata.labels
+        let phase = events[0].object.status.phase
+        let pod_name = events[0].object.metadata.name
+
+        // Capture pods transitioning from Pending to Running.
+        // This means being deployed...
+        if(phase === 'Pending') {
+            console.log(`event type ${events[0].type} -> ${pod_name}`)
+            console.log(`phase => `, events[0].object.status.phase)
+
+            pending[pod_name] = true
+        }
+
+        // If the pod goes from Pending to Running...
+        // ... We show the logs.
+        if(phase === 'Running' && pending[pod_name]) {
+            console.log('\033[2J')  // clear screen...
+            console.log('pod: ', pod_name)
+            console.log('================================')
+
+            // Watch the logs for this pod: pod_name
+            okd.pod.stream_logs(pod_name, (logs)=> {
+              // We read the logs and print the logs...
+              process.stdout.write(logs)
+            })
+            pending[pod_name] = false
+        }
+    }
+}
+
+login(store.configuration) //{cluster: '****', user:'user', ...}
+    .then(okd => okd.namespace('testing') // watch in testing namespace
+                    .pod
+                    .watch_all(watch_bot(okd, 'test'))
+    .catch(err => console.log('Authentication error: ', err))
+```
