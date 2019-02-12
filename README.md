@@ -16,8 +16,8 @@ This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to
   - [Remove](#remove)
   - [Create](#create)
   - [Template](#template)
+    - [Faster Template](#fii)
   - [Patch](#patch)
-* [Shortcuts](#fii)
 * [Watch](#watch)
   - [By Name](#watch_by_name)
   - [All](#watch_all)
@@ -305,32 +305,10 @@ object.metadata.name = 'deploy-y'
 deploy.post()   // we send the template with the amended field.
 ```
 
-<a name="patch"/>
-
-### Update resource
-
-To update a resource we just need to send a [json-PATCH](http://jsonpatch.com/) request.
-
-Let's update the image of a deployment:
-
-```js
-let update = {
-  op:'replace',
-  path:'/spec/template/spec/containers/0/image',
-  value: 'awesome:test-23'
-}
-
-let deploy = okd.namespace('dev-001').deploy
-
-deploy.patch('awesome-app', update)
-```
-
-This will update the deployment object and automatically this change will trigger a re-deployment.
-
 
 <a name="fii"/>
 
-## Shortcuts
+### Faster Template
 
 Some operations above can be done more faster for example the resource creation, here is an alternative on how to do this:
 
@@ -373,6 +351,33 @@ Let's say you have a bunch of resources in the form of templates.
  // Imagine all those templates represent deployments
    objs.forEach(obj => updateObjects(obj))
 ```
+
+
+
+
+
+<a name="patch"/>
+
+### Update resource
+
+To update a resource we just need to send a [json-PATCH](http://jsonpatch.com/) request.
+
+Let's update the image of a deployment:
+
+```js
+let update = {
+  op:'replace',
+  path:'/spec/template/spec/containers/0/image',
+  value: 'awesome:test-23'
+}
+
+let deploy = okd.namespace('dev-001').deploy
+
+deploy.patch('awesome-app', update)
+```
+
+This will update the deployment object and automatically this change will trigger a re-deployment.
+
 
 
 
