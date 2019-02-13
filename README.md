@@ -1,6 +1,6 @@
 ## OKD Node.js Client
 
-This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you use JavaScript to write simple programs to automate things like deploy images, listen for cluster events, [build/create containers](#binary) (OpenShift only at the moment), watch push/pull images etc. Or more sophisticated things like send me an email/slack message if a particular pod crash. 
+This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you use JavaScript to write simple programs to automate things like deploy images, listen for cluster events, [build/create containers](#binary) (OpenShift only at the moment), watch push/pull images etc. Or more sophisticated things like send me an email/slack message if a particular pod crash.
 
 ## Index
 
@@ -9,6 +9,7 @@ This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you
 * [Initialize With Token](#token)
 * [Select Namespace](#ns)
 * [Components](#res)
+* [CRUD](#common)
   - [Find All](#all)
   - [Find By Name](#by_name)
   - [Remove](#remove)
@@ -17,7 +18,6 @@ This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you
     - [Faster Template](#fii)
   - [Patch](#patch)
 * [Watch](#watch)
-  - [By Name](#watch_by_name)
   - [All](#watch_all)
 * [Concrete Implementations](#concrete)
   - [Build Configuration](#bc)
@@ -25,10 +25,6 @@ This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you
   - [Pods](#pods)
     - [Logs](#logs)
 * [Bot Example](#examples)
-
-
-
-## Login
 
 <a name="install"/>
 
@@ -58,32 +54,27 @@ let config = {
 }
 
 login(config)
-    .then(okd => {
-      //get all services.
-      return okd.namespace('dev-01').svc.all() /* Returns...
-                                                   [
-                                                     { kind: Service,
-                                                       apiVersion: v1,
-                                                       metadata:,
-                                                       ...
-                                                     },
-                                                     ....
-                                                   ]
-                                                */
-    })
-    .then(services => console.log('print: ', services))
-    .catch(err => console.log('promise failed: ', err))
+    .then(okd => /* do something... */)
+    .catch(err => /* auth failed... */)
 ```
+
+The login function receive an configuration following object:
+
+ - **cluster** Kubernetes server URL.
+ - **user, password**  Your user and password.
+ - **strictSSL** Some implementations like [Minishfit](https://github.com/minishift/minishift) use a self-signed SSL certificate which trigger a security warning for https clients, is that your case turn this to false.  
 
 The login functions returns an ``okd`` object after it finish the authentication with the server.
 
 
-
 <a name="token"/>
+
+
+
 
 #### With Token
 
-As mentioned before once you login into the server you will receive an ``okd`` object, but if you already have a token (because you previously acquired one through authentication) you can provide the cluster URL and the token.
+If you already have a token (because you previously acquired one through authentication) you can provide the cluster URL and the token.
 
 ```js
   const cluster = `https://minishfit.vm:8443/`
@@ -93,6 +84,9 @@ As mentioned before once you login into the server you will receive an ``okd`` o
   imagestream.all().then(/*...*/)
                    .catch(/*...*/)
 ```
+
+
+
 
 <a name="ns"/>
 
@@ -122,25 +116,27 @@ myScripts.forEach(script => useNS('B').from_template('app-1',script).post())
 myScripts.forEach(script => useNS('C').from_template('app-1',script).post())
 ```
 
+
+#### Retrieve Token
+
+Once the client login with the server you receive an OAuth token to get this token and other information by calling the ``config`` method.
+
+```js
+ okd.config( opts => {
+   console.log(opts)
+   /* {  namespace: '....',
+         cluster: '....',
+         token: '....',
+         strictSSL: true || false
+       } */
+ })
+```
+
 <a name="res"/>
 
 ### Components
 
-The ```okd``` object acts as a root object for all the available resources.
-
-```
-  okd.is     // OpenShift ImageStream
-  okd.bc     // OpenShift BuildConfig
-  okd.build  // OpenShift Build
-  okd.dc     // OpenShift DeploymentConfig
-  okd.route  // OpenShift Routes
-  okd.svc    // OpenShift/Kubernetes services
-  okd.pod    // OpenShift/Kubernetes pod
-  okd.deploy // OpenShift/Kubernetes deployment
-  okd.rs     // OpenShift/Kubernetes replica sets
-```
-
-Each of those function are objects represent one of this elements:
+This are the objects supported at the moment:
 
 - OpenShift  
   - [ImageStream](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html)
@@ -156,38 +152,49 @@ Each of those function are objects represent one of this elements:
   - [ReplicaSet](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/)
 
 
-Each element provide a create, read, update and delete RESTful interface:
+To access those elements like this:
 
-```js
-okd.bc.all()   // find all BuildConfig
-okd.bc.by_name('build-1')   // find BuildConfig by name
-okd.svc.post()  // new Kubernetes Service
-okd.svc.remove()  // remove a Kubernetes Service
-okd.route.patch()  // Update a OpenShift route
-```
+  ```js
+    okd.is     // OpenShift ImageStream
+    okd.bc     // OpenShift BuildConfig
+    okd.build  // OpenShift Build
+    okd.dc     // OpenShift DeploymentConfig
+    okd.route  // OpenShift Routes
+    okd.svc    // OpenShift/Kubernetes services
+    okd.pod    // OpenShift/Kubernetes pod
+    okd.deploy // OpenShift/Kubernetes deployment
+    okd.rs     // OpenShift/Kubernetes replica sets
+  ```
 
-Let's see each function in more detail.
 
+
+---
+
+<a name="common"/>
+
+## CRUD
+
+Each of this objects support a common set of functionalities which are related to the basic HTTP REST verbs. Let's talk in more detail about those functions. 
 
 <a name="all"/>
 
 ### Find All
 
-Returns a promise returning all resources from a particular type and namespace:
+Returns a promise which resolve in the future with a list of all the objects of a particular type.
+
 
 ```js
-  let is = okd.namespace('dev-665').is
+  // Returns a promise with all imagestreams in the namespace dev-655.
+  okd.namespace('dev-665')
+     .is
+     .all()      
 
-  is.all()      // All imagestreams
 
-  // Or
-  okd.namespace('my-ns')   // it works like a state machine.
-
-  okd.svc.all() // All Services
-  okd.routes.all() // All Routes
+  // All Services 
+  okd.namespace('dev-1')
+     .svc
+     .all()
 ```
-
-
 
 <a name="by_name"/>
 
@@ -199,10 +206,8 @@ You can also find resources by name:
   okd.namespace('dev-665')
      .is
      .by_name('nodejs-image')
-     .then(found => /*...*/)
-     .catch(err => /*..*/)
 ```
-This will look for a [image-stream](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html) with the name `nodejs-image`.
+Returns Imagestream called `nodejs-image`.
 
 
 <a name="remove"/>
@@ -237,7 +242,7 @@ Usually you want to describe the configuration of your components and for that r
 
 ### Template
 
-Let say you have a template to create a new deployment called ``deploy.yml``.
+Objects in Kubernetes are defined using a templates like this one:
 
 ```yml
 apiVersion: apps/v1beta1
@@ -264,23 +269,25 @@ spec:
         - containerPort: 8080
 ```
 
-
-The ``<%=name%>`` and ``<%=image%>`` are place holders that works very similar to the Javascript [template engines](https://stackoverflow.com/questions/4778881/how-to-use-underscore-js-as-a-template-engine). To publish this to the server you just need to do:
+This is what a Deployment looks like, this API support template parameters that helps you create reusable templates, in this example we can replace the ``<%=name%>`` and ``<%=image%>`` placeholders with actual information like this:
 
 ```js
-  let deploy = okd.namespace('dev-665').deploy
-  deploy.load({name: 'my-deployment', image:'nginx'}, 'deploy.yml').post()
+  let deploy = okd.namespace('dev-665')
+                  .deploy
+
+  deploy.load({name: 'my-deployment', image:'nginx'}, 'deploy.yml')
+        .post()
 ```
 
-This code will send the template in this form:
+This code push to the server a Deployment object with the following shape:  
 
-```yml
+```xml
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: deploy-x
+  name: my-deployment
   labels:
-    app: deploy-x
+    app: my-deployment
 spec:
   replicas: 1
   ...
@@ -292,7 +299,7 @@ spec:
 
 ### Editing template at Runtime
 
-To modify the template you can do this:
+To modify the template at run-time you can do the following:
 
 ```js
 let deploy = okd.namespace('dev-665').deploy
@@ -308,34 +315,31 @@ deploy.post()   // we send the template with the amended field.
 
 ### Faster Template
 
-Some operations above can be done more faster for example the resource creation, here is an alternative on how to do this:
+Template operations above can be done faster by using this shortcut:
 
 ```js
   okd.namespace('dev-003')
   okd.from_template(this.appName,'./tmpl/imagestream.yml').post()
 ```
 
-**from_template** will autodetect the type of template you try to use and if its supported you can perform the actions.
+**from_template** will auto-detect the type of template you try to use and if its supported you can perform the actions for example: 
 
-This is...
 ```js
   let deploy = okd.from_template(this.appName,'./tmpl/deployment.yml')
 ```
 
-...is the same as this.
+If ``deployment.yml`` is a valid Deployment template it will return an ``okd.deploy`` object, equivalent to something like this:
+
 
 ```js
-let deploy = okd.deploy.load('deploy-x', 'deploy.yml')
+let deploy = okd.deploy
 ```
 
-The difference is that you don't need to know what type of object you are dealing with.
-
-Let's say you have a bunch of resources in the form of templates.
+The difference is that the information about the deployment is encapsulated inside the object, allowing you act over the object.
 
 ```js
-
   //['tmpl0.yml','tmpl1.yml', 'tmpl2.yml'... ]
-  let objs = get_all_templates()
+  let objs = ['./deploy.yml','pod.yml', 'route.yml' ]
                 .map(tmpl => okd.from_template(tmpl))
 
   // create all
@@ -344,23 +348,14 @@ Let's say you have a bunch of resources in the form of templates.
 
   //delete all
     objs.forEach(obj => obj.remove())    
-
-
- // Imagine all those templates represent deployments
-   objs.forEach(obj => updateObjects(obj))
 ```
-
-
-
 
 
 <a name="patch"/>
 
-### Update resource
+### Patch 
 
-To update a resource we just need to send a [json-PATCH](http://jsonpatch.com/) request.
-
-Let's update the image of a deployment:
+The PATCH verb is implemented using [json-PATCH](http://jsonpatch.com/) protocol, for example: 
 
 ```js
 let update = {
@@ -383,53 +378,84 @@ This will update the deployment object and automatically this change will trigge
 
 ### Watch
 
-Kubernetes/OpenShift use an [event](https://kubernetes.io/docs/tasks/debug-application-cluster/events-stackdriver/) system to keep track of changes in the cluster, we can listen to this changes individually using the ``watch`` function.     
+Kubernetes/OpenShift uses an [event](https://kubernetes.io/docs/tasks/debug-application-cluster/events-stackdriver/) system to keep track of changes in the cluster, we can listen to this changes individually using the ``watch`` function.     
 
 ```js
-  okd.okd_object.watch(name, (event)=> {})
+  okd.okd_object.watch(name, event => {})
+```
+  - **name** The name of the object we want to listen for state change.
+
+  - ``event => `` A function that receives Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event).
+
+
+
+The *event* have the form of:
+
+```js
+{
+  type: "MODIFIED",  /* DELETE, ADDED */
+  object: {
+    kind: "Service",
+    apiVersion: "v1",
+    /*...*/
+  }
+}
 ```
 
-  - **name** The name of the object we want to listen for state change. 
-  - ``(event)=> {}`` A function that receives Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) object any time something happens. 
+Type define the action and object is basically a [Kubernetes/OKD](#res) object definition.
 
 
 
-
-
-
-In this example we are going to trigger build to create an image and then listen when this image is finally published in the registry:
+#### Usage Example
 
 ```js
 okd.namespace('hello')
 
-// Watch the build
+// Watch for new builds
 okd.is.watch('micro-1', (event)=> {
-  if (event.type === 'MODIFIED') {   // MODIFIED reports a change in this image stream.
-    /* Deploy this image */
+  if (event.type === 'MODIFIED') {   
+    // Deploy this image to ...
   }
 })
 
-// Trigger the build
-okd.bc.binary('/workspace.tar.gz', 'micro-1') // micro-1 should be an existing BuildConfig
-.then(ok => true)
-.catch(noErrors)
+// Watch for for actions in this pod
+okd.pod.watch('nginx-prod', (event)=> {
+  if (event.type === 'DELETED') {  
+    // Call emergency...
+  }
+})
+
 ```
 
 
 <a name="watch_all"/>
 
-#### Watch All
+### Watching All Objects
 
-The function ``watch_all`` listen for state changes in the namespace for a particular object type (Service, Pod, etc.) this function receives a function as parameter:
+Or we can watch them all using the ``watch_all`` function, and listen any events in the ``namespace`` for a particular object type.
 
 ```js
   okd.resource.watch_all( (events) => {  /* events [ event 1, event 2, ... ]*/  } )
 ```
 
-This function receives array of Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) as parameters. To watch the pods running in the ``testing`` namespace we can do this:
+This function receives array of [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) as parameters. To watch the pods running we can do this:
+
 
 ```js
 const login = require('./lib/okd').login
+
+login(store.configuration) //{cluster: '****', user:'user', ...}
+    .then(okd => okd.namespace('testing') // watch in testing namespace
+                    .pod
+                    .watch_all(watch_test))
+    .catch(err => console.log('Authentication error: ', err))
+
+```
+
+
+We call a ``watch_all`` function a pass a function called ``watch_test`` this function should have the following signature: 
+
+```js
 
 function watch_test(events) {
   let type     = events[0].type
@@ -443,15 +469,10 @@ function watch_test(events) {
     }
 }
 
-login(store.configuration) //{cluster: '****', user:'user', ...}
-    .then(okd => okd.namespace('testing') // watch in testing namespace
-                    .pod
-                    .watch_all(watch_test))
-    .catch(err => console.log('Authentication error: ', err))
-
 ```
 
-The function ``watch_test`` will get notify any time there is a state change (created, deleted, update, etc.) in the pod.
+
+Contrary to the cases above, here should use a callback because we are dealing with a stateful connection which will remain as long as the timeout limit establish by the cluster administrator. The event type is similar to the one we used above. 
 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/global-events.gif?raw=true)
@@ -536,7 +557,7 @@ This method keeps track of the latest logs update in the pod.
 
 <a name="examples"/>
 
-## Writing A Bot 
+## Writing A Bot
 
 This bot fetch the logs of any container recently deployed in the cluster, this include OKD builds.
 
@@ -591,9 +612,3 @@ login(store.configuration) //{cluster: '****', user:'user', ...}
 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/logs.gif?raw=true)
-
-
-
-
-
-
