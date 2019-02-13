@@ -1,8 +1,6 @@
 ## OKD Node.js Client
 
-This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to interact with your cluster API and this way use Javascript to automate task or perform operations.
-
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/okd-demo.gif?raw=true)
+This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you use JavaScript to write simple programs to automate things like deploy images, listen for cluster events, [build/create containers](#binary) (OpenShift only at the moment), watch push/pull images etc. Or more sophisticated things like send me an email/slack message if a particular pod crash. 
 
 ## Index
 
@@ -26,7 +24,7 @@ This Node.JS RESTful client for Kubernetes/OpenShift platform, you can use it to
     - [Binary Build](#binary)
   - [Pods](#pods)
     - [Logs](#logs)
-* [More Examples](#examples)
+* [Bot Example](#examples)
 
 
 
@@ -414,15 +412,13 @@ okd.bc.binary('/workspace.tar.gz', 'micro-1') // micro-1 should be an existing B
 
 #### Watch All
 
-You also can use ``watch_all`` to listen for changes for a particular set of objects type in the cluster/namespace, each event is later delegate to an [anonymous function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#The_function_expression_(function_expression)):
+The function ``watch_all`` listen for state changes in the namespace for a particular object type (Service, Pod, etc.) this function receives a function as parameter:
 
 ```js
-  okd.watch_all( (events) => {  /* events [ event 1, event 2, ... ]*/  } )
+  okd.resource.watch_all( (events) => {  /* events [ event 1, event 2, ... ]*/  } )
 ```
 
-This function will get an array of Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) as parameters reflecting any change in the cluster of those objects.
-
-In this example we are going to listen for any changes in pods running in the ``testing`` namespace:
+This function receives array of Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) as parameters. To watch the pods running in the ``testing`` namespace we can do this:
 
 ```js
 const login = require('./lib/okd').login
@@ -447,11 +443,10 @@ login(store.configuration) //{cluster: '****', user:'user', ...}
 
 ```
 
+The function ``watch_test`` will get notify any time there is a state change (created, deleted, update, etc.) in the pod.
+
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/global-events.gif?raw=true)
-
-
-This function is also available for all supported resources.  
 
 
 <a name="concrete"/>
@@ -533,9 +528,9 @@ This method keeps track of the latest logs update in the pod.
 
 <a name="examples"/>
 
-## More Examples
+## Writing A Bot 
 
-Let's make a robot that monitors the logs of any running pod in our namespace including builds (*which in essence are just other type of pods*).
+This bot fetch the logs of any container recently deployed in the cluster, this include OKD builds.
 
 ```js
 const login = require('./lib/okd').login
@@ -585,3 +580,12 @@ login(store.configuration) //{cluster: '****', user:'user', ...}
                     .watch_all(watch_bot(okd, 'test'))
     .catch(err => console.log('Authentication error: ', err))
 ```
+
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/logs.gif?raw=true)
+
+
+
+
+
+
