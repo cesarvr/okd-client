@@ -117,7 +117,7 @@ describe('Testing connection with OKD', function () {
 
 
     it('launching a binary build', function () {
-        this.timeout(5000)
+        this.timeout(25000)
         okd.namespace('hello')
 
         let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')

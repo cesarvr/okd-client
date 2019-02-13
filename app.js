@@ -10,7 +10,7 @@ login(store.configuration)
     .then(okd => {
         okd.namespace('hello')
         okd.config((conf) => store.save(conf))
-        return okd.deploy.put('test', {spec: { replicas: 4 }})
+        return okd.deploy.put('test', {spec: { replicas: 1 }})
     })
     .then(ok => console.log('update->', ok))
 //.then(rs.bind(null, 'fibonacci'))

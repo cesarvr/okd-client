@@ -17,6 +17,7 @@ This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you
   - [Template](#template)
     - [Faster Template](#fii)
   - [Patch](#patch)
+  - [Update](#update)
 * [Watch](#watch)
   - [All](#watch_all)
 * [Concrete Implementations](#concrete)
@@ -350,12 +351,60 @@ The difference is that the information about the deployment is encapsulated insi
     objs.forEach(obj => obj.remove())    
 ```
 
+<a name="update"/>
+
+### Update 
+
+To update a Kubernetes component such as Deployment you can use the ``put`` or ``update`` method, this method fetch a copy of the actual resource from the server and apply a merge, for example: 
+
+Let's assume an imaginary object ``A`` is in the cloud: 
+
+```js
+ A {
+     a:1,
+     b:2,
+     c:3,
+     d: { e: 5  } 
+   }
+```
+
+To update the ``e``  property to **1** we can do:
+
+```js 
+ okd.Atype.put( { b: {e: 1 } })
+   .then(ok =>  /* success */ )
+```
+
+After we execute this command we should get this: 
+
+```js
+ A {
+     a:1,
+     b:2,
+     c:3,
+     d: { e: 1  } 
+   }
+```
+
+
+In the following example we are going to update a Deployment controller ``test`` to 3 replicas. 
+
+```js
+login(store.configuration)
+    .then(okd => {
+        okd.namespace('hello')
+        okd.config((conf) => store.save(conf))
+        return okd.deploy.put('test', {spec: { replicas: 3 }})
+    })
+    .then(  ok => console.log('update->', ok))
+    .catch(err => console.log('failing: ', err))
+```
 
 <a name="patch"/>
 
 ### Patch 
 
-The PATCH verb is implemented using [json-PATCH](http://jsonpatch.com/) protocol, for example: 
+Another way to update Kubernetes object is to use the ``patch`` method, this method requires the [json-PATCH](http://jsonpatch.com/) protocol, for example: 
 
 ```js
 let update = {
