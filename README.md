@@ -377,7 +377,7 @@ deploy.patch('awesome-app', update)
 This will update the deployment object and automatically this change will trigger a re-deployment.
 
 
-
+---
 
 <a name="watch"/>
 
@@ -389,8 +389,8 @@ Kubernetes/OpenShift use an [event](https://kubernetes.io/docs/tasks/debug-appli
   okd.okd_object.watch(name, (event)=> {})
 ```
 
-- **name** The name of the object we want to listen for state change. 
-- **fn** A function that receives Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) object any time something happens. 
+  - **name** The name of the object we want to listen for state change. 
+  - ``(event)=> {}`` A function that receives Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) object any time something happens. 
 
 
 
