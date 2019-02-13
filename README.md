@@ -383,11 +383,19 @@ This will update the deployment object and automatically this change will trigge
 
 ### Watch
 
-Watching is another cool feature of Kubernetes/OpenShift that allows you to listen for specific [events](https://kubernetes.io/docs/tasks/debug-application-cluster/events-stackdriver/).  
+Kubernetes/OpenShift use an [event](https://kubernetes.io/docs/tasks/debug-application-cluster/events-stackdriver/) system to keep track of changes in the cluster, we can listen to this changes individually using the ``watch`` function.     
 
-<a name="watch_by_name"/>
+```js
+  okd.okd_object.watch(name, (event)=> {})
+```
 
-#### Watch By Name
+- **name** The name of the object we want to listen for state change. 
+- **fn** A function that receives Kubernetes [events](https://kubernetes.io/docs/reference/federation/v1/definitions/#_v1_event) object any time something happens. 
+
+
+
+
+
 
 In this example we are going to trigger build to create an image and then listen when this image is finally published in the registry:
 
