@@ -1,6 +1,6 @@
 {
   "name": "okd-api",
-  "version": "0.9.6",
+  "version": "0.9.8",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/"

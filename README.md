@@ -36,7 +36,7 @@ This Node.JS RESTful client API for Kubernetes/OpenShift. This library helps you
 ```
 
 ```js
-const { okd } = require('./lib/okd')
+const { login, okd } = require('okd-api')
 ```
 
 
@@ -65,13 +65,9 @@ The login function receive an configuration following object:
  - **user, password**  Your user and password.
  - **strictSSL** Some implementations like [Minishfit](https://github.com/minishift/minishift) use a self-signed SSL certificate which trigger a security warning for https clients, is that your case turn this to false.  
 
-The login functions returns an ``okd`` object after it finish the authentication with the server.
-
+The login functions returns an ``okd`` object after it finish the authentication with the server, the ``okd`` object is the one in charge of to talk against the API server.
 
 <a name="token"/>
-
-
-
 
 #### With Token
 
@@ -491,7 +487,7 @@ This function receives array of [events](https://kubernetes.io/docs/reference/fe
 
 
 ```js
-const login = require('./lib/okd').login
+const login = require('okd-api').login
 
 login(store.configuration) //{cluster: '****', user:'user', ...}
     .then(okd => okd.namespace('testing') // watch in testing namespace
@@ -608,11 +604,26 @@ This method keeps track of the latest logs update in the pod.
 
 ## Writing A Bot
 
-This bot fetch the logs of any container recently deployed in the cluster, this include OKD builds.
+Let's build a bot that fetch the logs of any container that is being deploying in our cluster, this can be interesting to follow the stages of an applications from building, testing and execution from one place.  
+
+### Login 
 
 ```js
-const login = require('./lib/okd').login
+const { login } = require('okd-api')
 
+login(store.configuration) // {cluster: '****', user:'user', ...}
+    .then(okd => okd.namespace('testing') 
+                    .pod
+                    .watch_all( pods => // pods events ) 
+         )
+    .catch(err => console.log('Authentication error: ', err))
+```
+
+
+We have done the login and we setup the watch for the namespace ``testing`` next we need to create a function that watch and capture the transition of pods from ``Pending`` to ``Running``. 
+
+
+```js
 
 function watch_bot(okd, name) {
     let pending = {}
@@ -652,12 +663,8 @@ function watch_bot(okd, name) {
     }
 }
 
-login(store.configuration) //{cluster: '****', user:'user', ...}
-    .then(okd => okd.namespace('testing') // watch in testing namespace
-                    .pod
-                    .watch_all(watch_bot(okd, 'test'))
-    .catch(err => console.log('Authentication error: ', err))
 ```
 
+This function does just that it just listen for pods doing the transitions and then we finally use the ``pod.stream_logs`` to retrieve the logs from the targeted pod. If we run this program we are going to get something like this: 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/logs.gif?raw=true)
