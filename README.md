@@ -141,12 +141,14 @@ This are the objects supported at the moment:
   - [Build](https://docs.openshift.com/container-platform/3.9/dev_guide/builds/index.html)
   - [DeploymentConfig](https://docs.openshift.com/enterprise/3.0/dev_guide/deployments.html)
   - [Router](https://docs.openshift.com/container-platform/3.9/install_config/router/index.html)
+  - [Project](https://docs.openshift.com/container-platform/3.7/dev_guide/projects.html) *Requires Admin*
 
 - Kubernetes
   - [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
   - [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
   - [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/)
   - [ReplicaSet](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/)
+  - [Namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) *Require Admin*
 
 
 To access those elements like this:
