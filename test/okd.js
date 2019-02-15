@@ -6,8 +6,44 @@ var client = require('../lib/client')
 var tools = require('../lib/tools')
 var okd_stream = require('../lib/helper/okd_stream')()
 
+describe('Validation & Utilities', () => {
 
-describe('When data we should extract the JSON and leave the rest', () => {
+    it('testing cluster address parser', () => {
+        assert.isFunction(tools.cluster_address, 'should be a function')
+        assert.equal(tools.cluster_address('https://192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'If we add the prefix we should get the prefix')
+        assert.equal(tools.cluster_address('192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'If we add the prefix we should get the prefix')
+        assert.equal(tools.cluster_address('http://192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'we should validate https')
+    
+    })
+    
+    it('checking tools.count', ()=>{
+        assert.isFunction(tools.count, 'should be a function')
+
+        assert.deepEqual(tools.count('{{{', ['{']), {'{':3}, 'should be the same'  )
+        assert.deepEqual(tools.count('{{{}}{{', ['{']), {'{':5}, 'should be the same'  )
+        assert.deepEqual(tools.count('{{{}}{{}', ['{', '}']), {'{':5, '}':3}, 'should be the same'  )
+        assert.deepEqual(tools.count('{', ['{', '}']), {'{':1, '}':0}, 'should be the same'  )
+        assert.deepEqual(tools.count('', ['{', '}']), {'{':0, '}':0}, 'should be the same'  )
+    })
+
+    it('checking that watch() function exist', () => {
+        let {okd} = require('../lib/okd')
+
+        okd = okd('127.0.0.1', 'token')
+
+        assert.isFunction(okd.is.watch, 'imagestream should have a watch function')
+        assert.isFunction(okd.dc.watch, 'dc should have a watch function')
+        assert.isFunction(okd.svc.watch, 'service should have a watch function')
+        assert.isFunction(okd.deploy.watch, 'deploy should have a watch function')
+
+
+    })
+
+
+
+})
+
+describe('Testing stream JSON parser', () => {
 
   it('testing okd_stream parser object', ()=> {
     let p1 = `{"value": "aaaaa"} \n {"value": "bbbbbb"} \n {"value":"ccccc"} \n`
@@ -61,30 +97,9 @@ describe('When data we should extract the JSON and leave the rest', () => {
 
 })
 
+
 describe('Testing the API', function () {
 
-    it('checking tools.count', ()=>{
-        assert.isFunction(tools.count, 'should be a function')
-
-        assert.deepEqual(tools.count('{{{', ['{']), {'{':3}, 'should be the same'  )
-        assert.deepEqual(tools.count('{{{}}{{', ['{']), {'{':5}, 'should be the same'  )
-        assert.deepEqual(tools.count('{{{}}{{}', ['{', '}']), {'{':5, '}':3}, 'should be the same'  )
-        assert.deepEqual(tools.count('{', ['{', '}']), {'{':1, '}':0}, 'should be the same'  )
-        assert.deepEqual(tools.count('', ['{', '}']), {'{':0, '}':0}, 'should be the same'  )
-    })
-
-    it('checking that watch() function exist', () => {
-        let {okd} = require('../lib/okd')
-
-        okd = okd('127.0.0.1', 'token')
-
-        assert.isFunction(okd.is.watch, 'imagestream should have a watch function')
-        assert.isFunction(okd.dc.watch, 'dc should have a watch function')
-        assert.isFunction(okd.svc.watch, 'service should have a watch function')
-        assert.isFunction(okd.deploy.watch, 'deploy should have a watch function')
-
-
-    })
 
     it('testing template loader', function () {
         assert.isFunction(tmpl.load, 'should be a function')
