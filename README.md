@@ -173,7 +173,7 @@ To access those elements like this:
 
 ## CRUD
 
-Each of this objects support a common set of functionalities which are related to the basic HTTP REST verbs. Let's talk in more detail about those functions. 
+Each of this objects support a common set of functionalities which are related to the basic HTTP REST verbs. Let's talk in more detail about those functions.
 
 <a name="all"/>
 
@@ -189,7 +189,7 @@ Returns a promise which resolve in the future with a list of all the objects of 
      .all()      
 
 
-  // All Services 
+  // All Services
   okd.namespace('dev-1')
      .svc
      .all()
@@ -321,7 +321,7 @@ Template operations above can be done faster by using this shortcut:
   okd.from_template(this.appName,'./tmpl/imagestream.yml').post()
 ```
 
-**from_template** will auto-detect the type of template you try to use and if its supported you can perform the actions for example: 
+**from_template** will auto-detect the type of template you try to use and if its supported you can perform the actions for example:
 
 ```js
   let deploy = okd.from_template(this.appName,'./tmpl/deployment.yml')
@@ -351,41 +351,41 @@ The difference is that the information about the deployment is encapsulated insi
 
 <a name="update"/>
 
-### Update 
+### Update
 
-To update a Kubernetes component such as Deployment you can use the ``put`` or ``update`` method, this method fetch a copy of the actual resource from the server and apply a merge, for example: 
+To update a Kubernetes component such as Deployment you can use the ``put`` or ``update`` method, this method fetch a copy of the actual resource from the server and apply a merge, for example:
 
-Let's assume an imaginary object ``A`` is in the cloud: 
+Let's assume an imaginary object ``A`` is in the cloud:
 
 ```js
  A {
      a:1,
      b:2,
      c:3,
-     d: { e: 5  } 
+     d: { e: 5  }
    }
 ```
 
 To update the ``e``  property to **1** we can do:
 
-```js 
+```js
  okd.Atype.put( { b: {e: 1 } })
    .then(ok =>  /* success */ )
 ```
 
-After we execute this command we should get this: 
+After we execute this command we should get this:
 
 ```js
  A {
      a:1,
      b:2,
      c:3,
-     d: { e: 1  } 
+     d: { e: 1  }
    }
 ```
 
 
-In the following example we are going to update a Deployment controller ``test`` to 3 replicas. 
+In the following example we are going to update a Deployment controller ``test`` to 3 replicas.
 
 ```js
 login(store.configuration)
@@ -400,9 +400,9 @@ login(store.configuration)
 
 <a name="patch"/>
 
-### Patch 
+### Patch
 
-Another way to update Kubernetes object is to use the ``patch`` method, this method requires the [json-PATCH](http://jsonpatch.com/) protocol, for example: 
+Another way to update Kubernetes object is to use the ``patch`` method, this method requires the [json-PATCH](http://jsonpatch.com/) protocol, for example:
 
 ```js
 let update = {
@@ -500,7 +500,7 @@ login(store.configuration) //{cluster: '****', user:'user', ...}
 ```
 
 
-We call a ``watch_all`` function a pass a function called ``watch_test`` this function should have the following signature: 
+We call a ``watch_all`` function a pass a function called ``watch_test`` this function should have the following signature:
 
 ```js
 
@@ -519,7 +519,7 @@ function watch_test(events) {
 ```
 
 
-Contrary to the cases above, here should use a callback because we are dealing with a stateful connection which will remain as long as the timeout limit establish by the cluster administrator. The event type is similar to the one we used above. 
+Contrary to the cases above, here should use a callback because we are dealing with a stateful connection which will remain as long as the timeout limit establish by the cluster administrator. The event type is similar to the one we used above.
 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/global-events.gif?raw=true)
@@ -601,6 +601,17 @@ okd.pod.stream_logs(podName, line => {
 
 This method keeps track of the latest logs update in the pod.
 
+If you are running multiple containers in a single *pod* then you can target that container using function ``container`` like this:
+
+```js
+okd.namespace('dev-0')
+             .pod
+             .container('ftp-server')
+             .logs('static-files-pod')
+             .then(logs => {
+                /* Read the logs */
+             })
+```
 
 <a name="examples"/>
 
@@ -608,21 +619,21 @@ This method keeps track of the latest logs update in the pod.
 
 Let's build a bot that fetch the logs of any container that is being deploying in our cluster, this can be interesting to follow the stages of an applications from building, testing and execution from one place.  
 
-### Login 
+### Login
 
 ```js
 const { login } = require('okd-api')
 
 login(store.configuration) // {cluster: '****', user:'user', ...}
-    .then(okd => okd.namespace('testing') 
+    .then(okd => okd.namespace('testing')
                     .pod
-                    .watch_all( pods => // pods events ) 
+                    .watch_all( pods => // pods events )
          )
     .catch(err => console.log('Authentication error: ', err))
 ```
 
 
-We have done the login and we setup the watch for the namespace ``testing`` next we need to create a function that watch and capture the transition of pods from ``Pending`` to ``Running``. 
+We have done the login and we setup the watch for the namespace ``testing`` next we need to create a function that watch and capture the transition of pods from ``Pending`` to ``Running``.
 
 
 ```js
@@ -667,6 +678,6 @@ function watch_bot(okd, name) {
 
 ```
 
-This function does just that it just listen for pods doing the transitions and then we finally use the ``pod.stream_logs`` to retrieve the logs from the targeted pod. If we run this program we are going to get something like this: 
+This function does just that it just listen for pods doing the transitions and then we finally use the ``pod.stream_logs`` to retrieve the logs from the targeted pod. If we run this program we are going to get something like this:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/static/gifs/logs.gif?raw=true)

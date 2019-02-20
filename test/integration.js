@@ -26,13 +26,6 @@ return login(store.configuration)
 after(() => {
    workspace.clean()
 
-    /*
-    let bc = okd.namespace('hello').bc
-    return bc.remove({name: 'micro-1'})
-    .then(ok => {
-        console.log('remove->', ok)
-    })
-    .catch(noErrors)*/
 })
 
 describe('Testing connection with OKD', function () {
@@ -163,6 +156,36 @@ describe('Testing connection with OKD', function () {
         svc.load({name: 'robot-build' } , './tmpl/build.yml')
         let ff = {kind: 'BuildConfig'}
         assert.deepInclude(svc._tmpl.val(), ff, `should had ${ff}`)
+    })
+
+    it('testing getting logs from one container', ()=>{
+      let t = okd.namespace('test')
+                    .pod
+
+      return t.logs('my-pod').then(logs => {
+          assert.equal(logs, 'Hello World\n', 'should be Hello Kubernetes!')
+      })
+    })
+
+    it('testing getting logs from two containers', ()=>{
+      let t = okd.namespace('test')
+                    .pod
+                    .container('minix')
+
+      return t.logs('sleep-5db8664869-swgjm').then(logs => {
+          assert.include(logs, 'Hello Kubernetes!', 'should be Hello Kubernetes!')
+      })
+    })
+
+    it('testing streaming logs', done =>{
+      let t = okd.namespace('test')
+                    .pod
+                    .container('minix')
+
+      t.stream_logs('sleep-5db8664869-swgjm', logs => {
+        assert.include(logs.toString(), 'Hello Kubernetes!', 'should be Hello Kubernetes!')
+        done()
+      })
     })
 
 })

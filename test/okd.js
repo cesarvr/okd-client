@@ -8,14 +8,26 @@ var okd_stream = require('../lib/helper/okd_stream')()
 
 describe('Validation & Utilities', () => {
 
+    it('placeholders transformation', () => {
+      let test = '($ONE, $TWO)'
+      assert.isFunction(tools.replace_placeholders, 'should be a function')
+
+      assert.equal('(1, 2)', tools.replace_placeholders(test, {'$ONE':1, '$TWO':2}), 'should translate the placeholders')
+
+      let test2 = '(1, 2, $THREE, $FOUR)'
+      assert.equal('(1, 2, 3, $FOUR)', tools.replace_placeholders(test2, {'$THREE':3, '$TWO':2}), 'should translate the placeholders')
+    })
+
     it('testing cluster address parser', () => {
         assert.isFunction(tools.cluster_address, 'should be a function')
         assert.equal(tools.cluster_address('https://192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'If we add the prefix we should get the prefix')
         assert.equal(tools.cluster_address('192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'If we add the prefix we should get the prefix')
         assert.equal(tools.cluster_address('http://192.168.64.2:8443'), 'https://192.168.64.2:8443' ,'we should validate https')
-    
+        assert.equal(tools.cluster_address('http://192.168.64.2:8443/'), 'https://192.168.64.2:8443' ,'we should get a valid https')
+        assert.equal(tools.cluster_address('https://192.168.64.2:8443/'), 'https://192.168.64.2:8443' ,'we should get a valid https')
+
     })
-    
+
     it('checking tools.count', ()=>{
         assert.isFunction(tools.count, 'should be a function')
 
@@ -144,7 +156,8 @@ describe('Testing the API', function () {
             },
             url: 'www.goo.gl',
             strictSSL: true,
-            timeout: 5000,
+            timeout: 10000,
+            qs:{}
         }
 
         assert.isFunction(client, 'should be an object')
