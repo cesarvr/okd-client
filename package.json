@@ -1,6 +1,6 @@
 {
   "name": "okd-api",
-  "version": "0.9.11",
+  "version": "0.9.13",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/"
@@ -9,6 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^4.17.11",
+    "mocha": "^6.0.0",
     "request": "^2.88.0",
     "yamljs": "^0.3.0"
   },
@@ -21,11 +22,9 @@
     "okd",
     "orchestration"
   ],
-
   "repository": {
     "type": "git",
     "url": "https://github.com/cesarvr/okd-client"
   },
-
   "description": "OKD (OpenShift) client for NodeJS"
 }

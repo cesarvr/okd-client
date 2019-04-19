@@ -154,15 +154,17 @@ This are the objects supported at the moment:
 To access those elements like this:
 
   ```js
-    okd.is     // OpenShift ImageStream
-    okd.bc     // OpenShift BuildConfig
-    okd.build  // OpenShift Build
-    okd.dc     // OpenShift DeploymentConfig
-    okd.route  // OpenShift Routes
-    okd.svc    // OpenShift/Kubernetes services
-    okd.pod    // OpenShift/Kubernetes pod
-    okd.deploy // OpenShift/Kubernetes deployment
-    okd.rs     // OpenShift/Kubernetes replica sets
+    okd.is         // OpenShift ImageStream
+    okd.bc         // OpenShift BuildConfig
+    okd.build      // OpenShift Build
+    okd.project    // OpenShift Project 
+    okd.dc         // OpenShift DeploymentConfig
+    okd.route      // OpenShift Routes
+    okd.svc        // OpenShift/Kubernetes services
+    okd.pod        // OpenShift/Kubernetes pod
+    okd.deploy     // OpenShift/Kubernetes deployment
+    okd.rs         // OpenShift/Kubernetes replica sets
+    okd.namespace     // OpenShift/Kubernetes Namespaces 
   ```
 
 

@@ -3,7 +3,7 @@ kind: DeploymentConfig
 metadata:
   name: <%=name%>
 spec:
-  replicas: 1
+  replicas: <%= replicas || 1 %>
   selector:
     deployment-config.name: <%=name%>
   strategy:
@@ -14,7 +14,8 @@ spec:
         deployment-config.name: <%=name%>
     spec:
       containers:
-      - image: 
+      - image: <%=image%> 
+        command: ['sh', '-c', 'echo Hello OCP! && sleep 3600']
         imagePullPolicy: Always
         name: default-container
         resources: {}

@@ -1,8 +1,8 @@
-var assert = require('chai').assert
-var Store = require('../lib/store')
-var login = require('../lib/okd').login
-var fs = require('fs')
-var WK = require('../lib/workspace')
+let assert = require('chai').assert
+let Store = require('../lib/store')
+let login = require('../lib/okd').login
+let fs = require('fs')
+let WK = require('../lib/workspace')
 
 let store = new Store()
 let okd = null
@@ -11,65 +11,49 @@ let file = null
 
 const noErrors = (err) =>
 {
-  assert.isNull(err, `We expect no errors here ${JSON.stringify(err)}`)
+    assert.isNull(err, `We expect no errors here ${JSON.stringify(err)}`)
 }
 
 before(function() {
-file = workspace.compress('./tt.tar')
-return login(store.configuration)
+    this.timeout(5000)
+    file = workspace.compress('./tt.tar')
+    return login(store.configuration)
         .then(api => {
             okd = api;
+
+            /*creating objects*/
+            okd.namespace('hello')
+            let bc = okd.from_template({ name: 'micro-x' }, './tmpl/build.yml')
+            let is = okd.from_template({ name: 'micro-x' }, './tmpl/imagestream.yml')
+
+            let create = [bc, is].map(oo => oo.post())
+            return Promise.all(create)
+                .then(ok => console.log('#'))
         })
         .catch(noErrors)
 })
 
 after(() => {
-   workspace.clean()
-
+    workspace.clean()
 })
 
 describe('Testing connection with OKD', function () {
+
     it('testing login', function () {
         return login(store.configuration)
-               .then(okd_builder => {
-                   assert.isDefined(okd , 'should be defined')
-                   assert.isObject(okd, 'Instance of builder');
-                   okd = okd
-               })
-               .catch(noErrors)
+            .then(okd_builder => {
+                assert.isDefined(okd_builder, 'should be defined')
+                assert.isObject(okd_builder,   'instance of builder');
+            })
+            .catch(noErrors)
     })
-
     it('testing extentions mechanism', function () {
         let bc = okd.namespace('hello')
-                            .from_template({ name: 'micro-1' }, './tmpl/build.yml')
+            .from_template({ name: 'micro-1' }, './tmpl/build.yml')
 
         assert.isFunction(bc.binary, 'bc should have a binary function')
     })
- this.timeout(150000);
-    it('testing errors', () => {
 
-        var _okd = require('../lib/okd').okd
-        _okd = _okd('https://120.3.3.3:8443', 'NOTOKEN').namespace('wrong')
-        return _okd.pod.all().then(ok => {
-            console.log('ok->', ok)
-
-        }).catch(err => {
-            assert.hasAnyKeys(err, ['code', 'payload', 'message'])
-            assert.equal(err.code, 'ETIMEDOUT', 'it should be a timeout')
-        })
-
-    })
-
-
-    it.skip('creating deployment config', () => {
-        let okd = okd.namespace('hello')
-        let dc  = okd.from_template({name: 'micro-1'}, './tmpl/deploy.yml')
-        let s = { kind: 'DeploymentConfig'}
-        return dc.create().then( (ok) => {
-            assert.deepInclude(ok, s, 'should be the the same object')
-        }).catch(noErrors)
-
-    })
 
     it('image stream must contain watch', function () {
 
@@ -77,35 +61,21 @@ describe('Testing connection with OKD', function () {
         assert.isDefined(is.watch, 'watch should be defined')
     })
 
-    /*
-    it('create a build', () => {
-        okd.namespace('hello')
-        let bc = okd.from_template('wicro-x', './tmpl/build.yml')
-
-        return bc.post()
-        .then(ok => {
-            console.log('create bc-> ', ok)
-        })
-        .catch(noErrors)
-    })*/
-
-
-
     it('watching a build', function (done) {
-      this.timeout(40000)
-      okd.namespace('hello')
-      let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
-      okd.is.watch('micro-x', (event)=> {
-        assert.deepInclude(event.object, {kind: 'ImageStream'}, 'should watch for buildconfiguration')
-        assert.containsAllKeys(event, ['type', 'object'], 'should contain an object with fields: [type, object] ')
-        if (event.type === 'MODIFIED') {
-          done()
-        }
-      })
+        this.timeout(60000)
+        okd.namespace('hello')
+        let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
+        assert.isFunction(okd.is.watch,  'watch  should be a function')
+        assert.isFunction(okd.is.on_new, 'on_new should be a function')
 
-      bc.binary(file, 'micro-x')
-      .then(ok => true)
-      .catch((err) => console.log('err0r ->', err) )
+        okd.is.on_new('micro-x', img => {
+            assert.include(img, 'hello/micro-x', 'we should get an new image hash here')
+            done()
+        })
+
+        bc.binary(file, 'micro-x')
+            .then(ok => true)
+            .catch((err) => console.log('err0r ->', err) )
     })
 
 
@@ -126,8 +96,8 @@ describe('Testing connection with OKD', function () {
     it('get builds', ()=> {
         okd.namespace('hello')
         return okd.namespace('hello')
-                  .bc
-                  .by_name('micro-x').then(ok => {
+            .bc
+            .by_name('micro-x').then(ok => {
             }).catch(noErrors)
     })
 
@@ -158,34 +128,62 @@ describe('Testing connection with OKD', function () {
         assert.deepInclude(svc._tmpl.val(), ff, `should had ${ff}`)
     })
 
-    it('testing getting logs from one container', ()=>{
-      let t = okd.namespace('test')
-                    .pod
+    it('testing getting logs from one container', () => {
+        let t = okd
+            .namespace('test')
+            .pod
 
-      return t.logs('my-pod').then(logs => {
-          assert.equal(logs, 'Hello World\n', 'should be Hello Kubernetes!')
-      })
+        return t.logs('my-pod')
+                .then(logs => {
+            assert.equal(logs, 'Hello World\n', 'should be Hello Kubernetes!')
+        })
     })
 
-    it('testing getting logs from two containers', ()=>{
-      let t = okd.namespace('test')
-                    .pod
-                    .container('minix')
+    it('getting containers', () => {
+        let pod = ["name",
+            "image",
+            "command",
+            "ports",
+            "resources",
+            "terminationMessagePath",
+            "terminationMessagePolicy",
+            "imagePullPolicy"]
 
-      return t.logs('sleep-5db8664869-swgjm').then(logs => {
-          assert.include(logs, 'Hello Kubernetes!', 'should be Hello Kubernetes!')
-      })
+        return okd.namespace('test')
+            .deploy
+            .containers('sleep')
+            .then(containers => {
+                console.log()
+                assert.deepEqual(pod, Object.keys(containers[0]), 'should be a container'  )
+            })
+
     })
 
-    it('testing streaming logs', done =>{
-      let t = okd.namespace('test')
-                    .pod
-                    .container('minix')
-
-      t.stream_logs('sleep-5db8664869-swgjm', logs => {
-        assert.include(logs.toString(), 'Hello Kubernetes!', 'should be Hello Kubernetes!')
-        done()
-      })
+    it('getting Running pods', ()=>{
+        assert.isFunction(okd.pod.running, 'should be a function')
+        
+        return okd.namespace('test').pod.running().then(pods => {
+            pods.forEach(pod => assert.equal('Running', pod.status.phase, 'We expect here running status'))
+        })
     })
+
+    it('getting Succeed pods', ()=>{
+        assert.isFunction(okd.pod.succeeded, 'should be a function')
+        
+        return okd.namespace('test').pod.succeeded().then(pods => {
+            pods.forEach(pod => assert.equal('Succeeded', pod.status.phase, 'We expect here completed status'))
+        })
+    })
+
+    it('deleting a build' , () => {
+        okd.namespace('hello')
+
+        let removing = [okd.is, okd.bc].map( obj => obj.remove('micro-x')  )
+
+        return Promise.all(removing).then(ok => {
+            ok.forEach( obj => assert.deepInclude(obj, {status: 'Success'}, 'deleting resource should succeed') )
+        })
+    })
+
 
 })
