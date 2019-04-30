@@ -1,14 +1,13 @@
 let assert = require('chai').assert
 let Store = require('../../lib/store')
-let login = require('../../lib/okd').login
+let okd = require('../../lib/okd')
 
 let store = new Store()
-let okd = null
 const DEPLOY_NAME = 'testing-dc' 
 
 before(function() {
     this.timeout(20000)
-    return login(store.configuration)
+    return okd(store.configuration)
         .then(api => {
             okd = api;
             /*creating objects*/
@@ -51,8 +50,6 @@ describe('Testing Pod functionality', function () {
 
     it(`retrive pods from deployment ${DEPLOY_NAME}`, () => {
         return okd.namespace('hello').dc.get_pods(DEPLOY_NAME).then(pods => {
-            console.log('->', pods)
-            console.log('->', typeof pods)
             return okd.pod
         })
     })

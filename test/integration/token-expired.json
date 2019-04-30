@@ -1,0 +1,6 @@
+{
+    "cluster": "https://console.pro-eu-west-1.openshift.com",
+    "namespace": "testing-2",
+    "token": "NSvPJQk7sHhJCBMRmF7sCZuUcbIB5WBqeaLWzJcrFYU",
+    "strictSSL": false
+}

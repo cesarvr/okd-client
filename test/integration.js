@@ -1,6 +1,6 @@
 let assert = require('chai').assert
 let Store = require('../lib/store')
-let login = require('../lib/okd').login
+let login = require('../lib/okd')
 let fs = require('fs')
 let WK = require('../lib/workspace')
 
@@ -88,8 +88,7 @@ describe('Testing connection with OKD', function () {
 
         return bc.binary(file).then(ok => {
             let kind = {kind: 'Build'}
-            assert.deepInclude(ok, kind,
-                'should return okd object from server')
+            assert.deepInclude(ok, kind, 'should return okd object from server')
         }).catch(noErrors)
     })
 
@@ -153,7 +152,6 @@ describe('Testing connection with OKD', function () {
             .deploy
             .containers('sleep')
             .then(containers => {
-                console.log()
                 assert.deepEqual(pod, Object.keys(containers[0]), 'should be a container'  )
             })
 
@@ -161,7 +159,7 @@ describe('Testing connection with OKD', function () {
 
     it('getting Running pods', ()=>{
         assert.isFunction(okd.pod.running, 'should be a function')
-        
+
         return okd.namespace('test').pod.running().then(pods => {
             pods.forEach(pod => assert.equal('Running', pod.status.phase, 'We expect here running status'))
         })
@@ -169,7 +167,7 @@ describe('Testing connection with OKD', function () {
 
     it('getting Succeed pods', ()=>{
         assert.isFunction(okd.pod.succeeded, 'should be a function')
-        
+
         return okd.namespace('test').pod.succeeded().then(pods => {
             pods.forEach(pod => assert.equal('Succeeded', pod.status.phase, 'We expect here completed status'))
         })

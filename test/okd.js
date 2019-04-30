@@ -38,21 +38,14 @@ describe('Validation & Utilities', () => {
         assert.deepEqual(tools.count('', ['{', '}']), {'{':0, '}':0}, 'should be the same'  )
     })
 
-    it('checking that watch() function exist', () => {
-        let {okd} = require('../lib/okd')
+    it('Checking OKD instantiation', () => {
+        let okd = require('../lib/okd')
 
-        okd = okd('127.0.0.1', 'token')
-
-        assert.isFunction(okd.is.watch, 'imagestream should have a watch function')
-        assert.isFunction(okd.dc.watch, 'dc should have a watch function')
-        assert.isFunction(okd.svc.watch, 'service should have a watch function')
-        assert.isFunction(okd.deploy.watch, 'deploy should have a watch function')
-
-
+        okd = okd({ cluster: '127.0.0.1', token: 'token' })
+            .then(api => {
+                assert.isObject(api, 'should be an object')
+        })
     })
-
-
-
 })
 
 describe('Testing stream JSON parser', () => {

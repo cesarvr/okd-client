@@ -1,0 +1,144 @@
+{
+    "metadata": {
+        "name": "testing-dc-1-x5bzv",
+        "generateName": "testing-dc-1-",
+        "namespace": "hello",
+        "selfLink": "/api/v1/namespaces/hello/pods/testing-dc-1-x5bzv",
+        "uid": "e65e1dfe-680d-11e9-99c3-2e84370806dc",
+        "resourceVersion": "3084890",
+        "creationTimestamp": "2019-04-26T10:27:32Z",
+        "labels": {
+            "deployment": "testing-dc-1",
+            "deployment-config.name": "testing-dc",
+            "deploymentconfig": "testing-dc"
+        },
+        "annotations": {
+            "openshift.io/deployment-config.latest-version": "1",
+            "openshift.io/deployment-config.name": "testing-dc",
+            "openshift.io/deployment.name": "testing-dc-1",
+            "openshift.io/scc": "restricted"
+        },
+        "ownerReferences": [
+            {
+                "apiVersion": "v1",
+                "kind": "ReplicationController",
+                "name": "testing-dc-1",
+                "uid": "e5cd454e-680d-11e9-99c3-2e84370806dc",
+                "controller": true,
+                "blockOwnerDeletion": true
+            }
+        ]
+    },
+    "spec": {
+        "volumes": [
+            {
+                "name": "default-token-z8dk7",
+                "secret": {
+                    "secretName": "default-token-z8dk7",
+                    "defaultMode": 420
+                }
+            }
+        ],
+        "containers": [
+            {
+                "name": "default-container",
+                "image": "busybox",
+                "command": [
+                    "sh",
+                    "-c",
+                    "echo Hello OCP! && sleep 3600"
+                ],
+                "resources": {},
+                "volumeMounts": [
+                    {
+                        "name": "default-token-z8dk7",
+                        "readOnly": true,
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                    }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "Always",
+                "securityContext": {
+                    "capabilities": {
+                        "drop": [
+                            "KILL",
+                            "MKNOD",
+                            "SETGID",
+                            "SETUID"
+                        ]
+                    },
+                    "runAsUser": 1000170000
+                }
+            }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "localhost",
+        "securityContext": {
+            "seLinuxOptions": {
+                "level": "s0:c13,c7"
+            },
+            "fsGroup": 1000170000
+        },
+        "imagePullSecrets": [
+            {
+                "name": "default-dockercfg-4mtpd"
+            }
+        ],
+        "schedulerName": "default-scheduler",
+        "priority": 0
+    },
+    "status": {
+        "phase": "Running",
+        "conditions": [
+            {
+                "type": "Initialized",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2019-04-26T10:27:32Z"
+            },
+            {
+                "type": "Ready",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2019-04-26T10:27:35Z"
+            },
+            {
+                "type": "ContainersReady",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": null
+            },
+            {
+                "type": "PodScheduled",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2019-04-26T10:27:32Z"
+            }
+        ],
+        "hostIP": "192.168.64.2",
+        "podIP": "172.17.0.16",
+        "startTime": "2019-04-26T10:27:32Z",
+        "containerStatuses": [
+            {
+                "name": "default-container",
+                "state": {
+                    "running": {
+                        "startedAt": "2019-04-26T10:27:35Z"
+                    }
+                },
+                "lastState": {},
+                "ready": true,
+                "restartCount": 0,
+                "image": "docker.io/busybox:latest",
+                "imageID": "docker-pullable://docker.io/busybox@sha256:954e1f01e80ce09d0887ff6ea10b13a812cb01932a0781d6b0cc23f743a874fd",
+                "containerID": "docker://5db55e3f02c0212f832d3a462774c26a65efab29df66c74f15f1d97c9494627c"
+            }
+        ],
+        "qosClass": "BestEffort"
+    }
+}

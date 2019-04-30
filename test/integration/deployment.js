@@ -1,46 +1,55 @@
 let assert = require('chai').assert
-let Store = require('../../lib/store')
-let login = require('../../lib/okd').login
+let Store  = require('../../lib/store')
+let okd    = require('../../lib/okd')
 
-let store = new Store()
-let okd = null
-const DEPLOY_NAME = 'testing-dc' 
+let store  = new Store()
+let client = null
+let rs = null
+
+const DEPLOY_NAME = 'testing-dc'
 
 before(function() {
     this.timeout(20000)
-    return login(store.configuration)
+
+    let deployment_cfg = {
+        name: DEPLOY_NAME,
+        replicas: 3,
+        image:'busybox'
+    }
+
+    return okd(store.configuration)
         .then(api => {
-            okd = api;
+            client = api;
+
             /*creating objects*/
-            okd.namespace('hello')
-            let dc = okd.from_template({ 
-                    name: DEPLOY_NAME, 
-                    replicas: 3, 
-                    image:'busybox' 
-                    }, './tmpl/deploy.yml')
+            client.namespace('hello')
+            rs = api.namespace('hello').rs
+
+            let dc = client
+                .from_template(deployment_cfg, './tmpl/deploy.yml')
                 .post()
 
             return dc.then(ok => {
-
                 return new Promise((rs, rj) => {
-                    setTimeout(()=>{ 
-                        console.log(' ') 
+                    setTimeout(()=>{
+                        console.log(' ')
                         rs()
                     }, 10000)
-                }) 
+                })
             })
         })
         .catch((err) =>  console.log('Failing in Before: ', err ))
 })
 
 after(function (){
-    return okd.namespace('hello').dc.remove(DEPLOY_NAME)
+    return client.namespace('hello').dc.remove(DEPLOY_NAME)
+                 .then(rmv => console.log('removed->', rmv) ) 
 })
 
 describe('Testing Deployment functionality', function () {
     it('testing get_pods', () => {
-        let dc = okd.namespace('hello').dc
-        let deploy = okd.namespace('hello').deploy
+        let dc = client.namespace('hello').dc
+        let deploy = client.namespace('hello').deploy
 
         assert.isObject(dc, 'should be an object')
         assert.isObject(deploy, 'should be an object')
@@ -49,11 +58,12 @@ describe('Testing Deployment functionality', function () {
     })
 
     it(`retrive pods from deployment ${DEPLOY_NAME}`, () => {
-        return okd.namespace('hello').dc.get_pods(DEPLOY_NAME).then(pods => {
-            console.log('->', pods)
+        return client.namespace('hello').dc.get_pods(DEPLOY_NAME).then(pods => {
             assert.isAtLeast(3, pods.length, 'We need 3 replicas here')
         })
     })
 
+    it(`checking replica-sets`, () => {
+        return rs.all().then( rs =>  console.log('rs ->', JSON.stringify(rs,null,4 )) )
+    })
 })
-
