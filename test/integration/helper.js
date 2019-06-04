@@ -6,5 +6,5 @@ const delay = (rs, rj) => {
 }
 
 module.exports = {
-  delay: new Promise(delay)
+  delay1000: () => new Promise(delay)
 }
