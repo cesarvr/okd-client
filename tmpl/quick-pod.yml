@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quick-container
+  labels:
+    purpose: quick-container
+spec:
+  containers:
+  - name: quick-container
+    image: busybox
+    command: ["/bin/sh"]
+	  args: ["-c", "while true; do echo hello; sleep 100;done"]
+  restartPolicy: OnFailure

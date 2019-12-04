@@ -4,6 +4,9 @@ let login = require('../lib/okd').login
 let fs = require('fs')
 let WK = require('../lib/workspace')
 
+
+const DEPLOYMENT_CONFIG="dc-deleteme"
+const IMAGE_CONFIG="img-delteme"
 let store = new Store()
 let okd = null
 let workspace = new WK()
@@ -14,6 +17,7 @@ const noErrors = (err) =>
     assert.isNull(err, `We expect no errors here ${JSON.stringify(err)}`)
 }
 
+
 before(function() {
     this.timeout(5000)
     file = workspace.compress('./tt.tar')
@@ -23,12 +27,13 @@ before(function() {
 
             /*creating objects*/
             okd.namespace('hello')
-            let bc = okd.from_template({ name: 'micro-x' }, './tmpl/build.yml')
-            let is = okd.from_template({ name: 'micro-x' }, './tmpl/imagestream.yml')
+            let bc = okd.from_template({ name: IMAGE_CONFIG }, './tmpl/build.yml')
+            let is = okd.from_template({ name: IMAGE_CONFIG }, './tmpl/imagestream.yml')
+            let dc = okd.from_template({ name: DEPLOYMENT_CONFIG, replicas: 1, image:'busybox' }, './tmpl/deploy.yml')
 
-            let create = [bc, is].map(oo => oo.post())
+            let create = [dc, bc, is].map(oo => oo.post())
             return Promise.all(create)
-                .then(ok => console.log('#'))
+                .then(ok => console.log('testing samples created...\n\n'))
         })
         .catch(noErrors)
 })
@@ -62,42 +67,45 @@ describe('Testing connection with OKD', function () {
     })
 
     it('watching a build', function (done) {
-        this.timeout(60000)
+        this.timeout(200000)
         okd.namespace('hello')
-        let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
+        let bc = okd.from_template({name: IMAGE_CONFIG}, './tmpl/build.yml')
         assert.isFunction(okd.is.watch,  'watch  should be a function')
         assert.isFunction(okd.is.on_new, 'on_new should be a function')
 
-        okd.is.on_new('micro-x', img => {
-            assert.include(img, 'hello/micro-x', 'we should get an new image hash here')
+        okd.is.on_new(IMAGE_CONFIG, img => {
+            assert.isNotEmpty(img, 'we should get an image here')
             done()
         })
 
-        bc.binary(file, 'micro-x')
+        bc.binary(file, IMAGE_CONFIG)
             .then(ok => true)
             .catch((err) => console.log('err0r ->', err) )
     })
 
 
     it('launching a binary build', function () {
-        this.timeout(25000)
+        this.timeout(200000)
         okd.namespace('hello')
 
-        let bc = okd.from_template({name: 'micro-x'}, './tmpl/build.yml')
+        let bc = okd.from_template({name: IMAGE_CONFIG}, './tmpl/build.yml')
         assert.isFunction(bc.binary, 'bc should have a binary function')
 
-        return bc.binary(file).then(ok => {
-            let kind = {kind: 'Build'}
+        return bc.binary(file).
+                 .then(ok => {
+                    
+            let kind = { kind: 'Build' }
             assert.deepInclude(ok, kind,
                 'should return okd object from server')
-        }).catch(noErrors)
+        })
+        .catch(noErrors)
     })
 
     it('get builds', ()=> {
         okd.namespace('hello')
         return okd.namespace('hello')
             .bc
-            .by_name('micro-x').then(ok => {
+            .by_name(IMAGE_CONFIG).then(ok => {
             }).catch(noErrors)
     })
 
@@ -112,10 +120,10 @@ describe('Testing connection with OKD', function () {
 
 
     it('testing by_name retrieval', function (){
-        let svc = okd.namespace('hello').svc
-        return svc.by_name('toby')
+        let bc = okd.namespace('hello').bc
+        return bc.by_name(IMAGE_CONFIG)
             .then(list => {
-                let ff = {kind: 'Service'}
+                let ff = {kind: 'BuildConfig'}
                 assert.deepInclude(list, ff, `should had ${ff}`)
             })
             .catch(noErrors)
@@ -124,39 +132,40 @@ describe('Testing connection with OKD', function () {
     it('load templates', function (){
         let svc = okd.namespace('hello').svc
         svc.load({name: 'robot-build' } , './tmpl/build.yml')
+       
         let ff = {kind: 'BuildConfig'}
         assert.deepInclude(svc._tmpl.val(), ff, `should had ${ff}`)
     })
 
     it('testing getting logs from one container', () => {
-        let t = okd
-            .namespace('test')
+        let mypod = okd
+            .namespace('hello')
             .pod
 
-        return t.logs('my-pod')
-                .then(logs => {
-            assert.equal(logs, 'Hello World\n', 'should be Hello Kubernetes!')
-        })
+        return mypod.all().then(pods => {
+                //console.log('pods: ', pods.items[0].metadata.name)
+                return mypod.logs(pods.items[0].metadata.name)
+            }).then(logs => {
+                assert.isNotEmpty(logs, 'We should get something back...')
+            })
     })
 
     it('getting containers', () => {
         let pod = ["name",
             "image",
             "command",
-            "ports",
             "resources",
             "terminationMessagePath",
             "terminationMessagePolicy",
             "imagePullPolicy"]
 
-        return okd.namespace('test')
-            .deploy
-            .containers('sleep')
+        return okd
+            .namespace('hello')
+            .dc
+            .containers(DEPLOYMENT_CONFIG)
             .then(containers => {
-                console.log()
                 assert.deepEqual(pod, Object.keys(containers[0]), 'should be a container'  )
             })
-
     })
 
     it('getting Running pods', ()=>{
@@ -178,12 +187,11 @@ describe('Testing connection with OKD', function () {
     it('deleting a build' , () => {
         okd.namespace('hello')
 
-        let removing = [okd.is, okd.bc].map( obj => obj.remove('micro-x')  )
+        let removing = [okd.is, okd.bc].map( obj => obj.remove(IMAGE_CONFIG)  )
+        removing.push(okd.dc.remove(DEPLOYMENT_CONFIG))
 
         return Promise.all(removing).then(ok => {
             ok.forEach( obj => assert.deepInclude(obj, {status: 'Success'}, 'deleting resource should succeed') )
         })
     })
-
-
 })
