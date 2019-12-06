@@ -91,9 +91,8 @@ describe('Testing connection with OKD', function () {
         let bc = okd.from_template({name: IMAGE_CONFIG}, './tmpl/build.yml')
         assert.isFunction(bc.binary, 'bc should have a binary function')
 
-        return bc.binary(file).
+        return bc.binary(file)
                  .then(ok => {
-                    
             let kind = { kind: 'Build' }
             assert.deepInclude(ok, kind,
                 'should return okd object from server')
